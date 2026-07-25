@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 820" role="img" aria-label="十三邀">
+  <defs>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f3eee8"/>
+      <stop offset="1" stop-color="#a96548"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="820" fill="url(#paper)"/>
+  <circle cx="300" cy="290" r="132" fill="rgba(251,250,248,.34)" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+  <text x="74" y="118" fill="#6b4939" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="28" font-weight="500" letter-spacing="4">INTERVIEW</text>
+  <text x="120" y="455" fill="#1f1f1f" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="98" font-weight="600">十三邀</text>
+  <line x1="120" y1="528" x2="480" y2="528" stroke="#6b4939" stroke-width="4" stroke-linecap="round"/>
+  <text x="120" y="592" fill="#6b4939" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="32" font-weight="400">许知远</text>
+</svg>

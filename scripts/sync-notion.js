@@ -1,0 +1,314 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+
+const NOTION_VERSION = "2022-06-28";
+const ROOT_DIR = path.resolve(__dirname, "..");
+const GENERATED_DIR = path.join(ROOT_DIR, "data", "generated");
+const DEFAULT_ENV_PATH = path.join(ROOT_DIR, ".env");
+
+const args = new Set(process.argv.slice(2));
+const dryRun = args.has("--dry-run");
+
+loadEnvFile(DEFAULT_ENV_PATH);
+
+const config = {
+  token: process.env.NOTION_TOKEN,
+  articlesSourceId: process.env.NOTION_ARTICLES_SOURCE_ID,
+  momentsSourceId: process.env.NOTION_MOMENTS_SOURCE_ID,
+  mediaSourceId: process.env.NOTION_MEDIA_SOURCE_ID,
+};
+
+main().catch((error) => {
+  console.error(`Notion sync failed: ${error.message}`);
+  process.exitCode = 1;
+});
+
+async function main() {
+  validateConfig(config);
+
+  const [articles, moments, mediaRows] = await Promise.all([
+    queryDataSource(config.articlesSourceId),
+    queryDataSource(config.momentsSourceId),
+    queryDataSource(config.mediaSourceId),
+  ]);
+
+  const output = {
+    articles: articles.map(mapArticle).filter(Boolean),
+    moments: moments.map(mapMoment).filter(Boolean),
+    media: groupMediaByMonth(mediaRows.map(mapMedia).filter(Boolean)),
+  };
+
+  output.articles.sort((a, b) => compareDateDesc(a.date, b.date));
+  output.moments.sort((a, b) => compareDateDesc(`${a.date}T${a.time || "00:00"}`, `${b.date}T${b.time || "00:00"}`));
+
+  if (dryRun) {
+    console.log(JSON.stringify({
+      articles: output.articles.length,
+      moments: output.moments.length,
+      mediaItems: output.media.reduce((count, group) => count + group.items.length, 0),
+      mediaGroups: output.media.length,
+    }, null, 2));
+    return;
+  }
+
+  fs.mkdirSync(GENERATED_DIR, { recursive: true });
+  writeJson("articles.json", output.articles);
+  writeJson("moments.json", output.moments);
+  writeJson("media.json", output.media);
+  writeJs("articles.generated.js", "window.generatedArticlesData", output.articles);
+  writeJs("moments.generated.js", "window.generatedMomentsData", output.moments);
+  writeJs("media.generated.js", "window.generatedMediaData", output.media);
+
+  console.log(`Synced ${output.articles.length} articles, ${output.moments.length} moments, ${output.media.reduce((count, group) => count + group.items.length, 0)} media items.`);
+}
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+
+  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return;
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex === -1) return;
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const rawValue = trimmed.slice(separatorIndex + 1).trim();
+    const value = rawValue.replace(/^["']|["']$/g, "");
+
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  });
+}
+
+function validateConfig({ token, articlesSourceId, momentsSourceId, mediaSourceId }) {
+  const missing = [];
+  if (!token) missing.push("NOTION_TOKEN");
+  if (!articlesSourceId) missing.push("NOTION_ARTICLES_SOURCE_ID");
+  if (!momentsSourceId) missing.push("NOTION_MOMENTS_SOURCE_ID");
+  if (!mediaSourceId) missing.push("NOTION_MEDIA_SOURCE_ID");
+
+  if (missing.length) {
+    throw new Error(`Missing environment variables: ${missing.join(", ")}. Copy .env.example to .env and fill them in.`);
+  }
+}
+
+async function queryDataSource(dataSourceId) {
+  const results = [];
+  let startCursor;
+
+  do {
+    const payload = startCursor ? { start_cursor: startCursor } : {};
+    const response = await fetch(`https://api.notion.com/v1/data_sources/${normalizeId(dataSourceId)}/query`, {
+      method: "POST",
+      headers: notionHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Notion query failed for ${dataSourceId}: ${response.status} ${detail}`);
+    }
+
+    const data = await response.json();
+    results.push(...(data.results || []));
+    startCursor = data.has_more ? data.next_cursor : undefined;
+  } while (startCursor);
+
+  return results.filter((page) => getSelectName(page, "Status") !== "Hidden" && getSelectName(page, "Status") !== "Archived");
+}
+
+function notionHeaders() {
+  return {
+    Authorization: `Bearer ${config.token}`,
+    "Content-Type": "application/json",
+    "Notion-Version": NOTION_VERSION,
+  };
+}
+
+function normalizeId(value) {
+  return String(value || "").replace(/^collection:\/\//, "").trim();
+}
+
+function mapArticle(page) {
+  const title = getTitle(page, "Title");
+  if (!title) return null;
+
+  const content = blocksToArticleContent(page);
+  const date = getDateStart(page, "PublishedAt") || getDateStart(page, "SortDate") || "";
+
+  return {
+    id: getRichText(page, "Slug") || slugify(title),
+    title,
+    date,
+    updatedAt: getDateStart(page, "UpdatedAt") || date,
+    category: getSelectName(page, "Folder") || "随笔",
+    summary: getRichText(page, "Summary"),
+    tags: getRelationNames(page, "Tags"),
+    content,
+  };
+}
+
+function mapMoment(page) {
+  const title = getTitle(page, "Title");
+  const publishedAt = getDateStart(page, "PublishedAt") || getDateStart(page, "SortDate");
+  const dateTime = splitDateTime(publishedAt);
+  if (!title || !dateTime.date) return null;
+
+  return {
+    id: title,
+    date: dateTime.date,
+    time: dateTime.time,
+    text: getRichText(page, "Content"),
+    location: getRichText(page, "Location"),
+    photos: getFiles(page, "Photos").map((file) => ({
+      src: file.url,
+      alt: file.name || title,
+      shape: "wide",
+    })),
+    notes: [],
+  };
+}
+
+function mapMedia(page) {
+  const title = getTitle(page, "Title");
+  if (!title) return null;
+
+  const finishedAt = getDateStart(page, "FinishedAt") || getDateStart(page, "SortDate") || "";
+  const cover = getFiles(page, "Cover")[0];
+
+  return {
+    month: finishedAt ? finishedAt.slice(0, 7).replace("-", ".") : "未归档",
+    item: {
+      type: getSelectName(page, "Type") || "综合",
+      title,
+      creator: getRichText(page, "Creator"),
+      review: getRichText(page, "Review"),
+      cover: "a",
+      url: getUrl(page, "SourceURL") || "#",
+      poster: cover?.url || "",
+      rating: getNumber(page, "Rating"),
+    },
+  };
+}
+
+function blocksToArticleContent(page) {
+  const markdown = page.properties?.Content?.rich_text
+    ? getRichText(page, "Content")
+    : "";
+
+  if (!markdown) {
+    return [
+      {
+        type: "paragraph",
+        text: "正文将在接入 Notion 页面块读取后同步。",
+      },
+    ];
+  }
+
+  return markdown
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      if (part.startsWith("## ")) return { type: "heading", text: part.replace(/^##\s+/, "") };
+      if (part.startsWith("> ")) return { type: "quote", text: part.replace(/^>\s+/, "") };
+      if (part.startsWith("- ")) {
+        return {
+          type: "list",
+          items: part.split(/\n/).map((line) => line.replace(/^-\s+/, "").trim()).filter(Boolean),
+        };
+      }
+      return { type: "paragraph", text: part };
+    });
+}
+
+function groupMediaByMonth(rows) {
+  const groups = new Map();
+
+  rows.forEach(({ month, item }) => {
+    if (!groups.has(month)) {
+      groups.set(month, { month, items: [] });
+    }
+    groups.get(month).items.push(item);
+  });
+
+  return [...groups.values()].sort((a, b) => b.month.localeCompare(a.month));
+}
+
+function getProperty(page, name) {
+  return page.properties?.[name];
+}
+
+function getTitle(page, name) {
+  const property = getProperty(page, name);
+  return (property?.title || []).map((item) => item.plain_text || "").join("").trim();
+}
+
+function getRichText(page, name) {
+  const property = getProperty(page, name);
+  return (property?.rich_text || []).map((item) => item.plain_text || "").join("").trim();
+}
+
+function getSelectName(page, name) {
+  return getProperty(page, name)?.select?.name || "";
+}
+
+function getNumber(page, name) {
+  return getProperty(page, name)?.number ?? null;
+}
+
+function getUrl(page, name) {
+  return getProperty(page, name)?.url || "";
+}
+
+function getDateStart(page, name) {
+  return getProperty(page, name)?.date?.start || "";
+}
+
+function getFiles(page, name) {
+  const property = getProperty(page, name);
+  return (property?.files || []).map((file) => ({
+    name: file.name || "",
+    url: file.type === "external" ? file.external?.url : file.file?.url,
+  })).filter((file) => file.url);
+}
+
+function getRelationNames() {
+  // Notion's public relation payload only includes page IDs in the API response.
+  // Tag name expansion will be added after the basic sync path is stable.
+  return [];
+}
+
+function splitDateTime(value) {
+  if (!value) return { date: "", time: "22:27" };
+  const [date, timePart] = value.split("T");
+  const time = timePart ? timePart.slice(0, 5) : "22:27";
+  return { date, time };
+}
+
+function compareDateDesc(a, b) {
+  return String(b || "").localeCompare(String(a || ""));
+}
+
+function slugify(value) {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\w\u4e00-\u9fff-]+/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function writeJson(filename, data) {
+  fs.writeFileSync(path.join(GENERATED_DIR, filename), `${JSON.stringify(data, null, 2)}\n`);
+}
+
+function writeJs(filename, globalName, data) {
+  fs.writeFileSync(path.join(GENERATED_DIR, filename), `${globalName} = ${JSON.stringify(data, null, 2)};\n`);
+}

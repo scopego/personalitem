@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN" class="app-booting">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一个记录生活、工作、学习、灵感与影像的极简中文个人博客。"
+    />
+    <title>22:27</title>
+    <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/images/favicon.svg" />
+    <script>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem("theme");
+          const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.theme = savedTheme || (systemDark ? "dark" : "light");
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css?v=20260725-prelaunch-cleanup" />
+  </head>
+  <body>
+    <header class="top-nav" id="topNav">
+      <div class="top-nav-inner">
+        <div class="brand">
+          <a class="brand-home" href="#calendar" data-view="calendar" aria-label="进入年历">
+            <strong class="brand-title" data-animated-title>22:27</strong>
+          </a>
+        </div>
+
+        <nav class="top-links" aria-label="顶部导航">
+          <a href="#articles" data-view="articles">文章</a>
+          <a href="#media" data-view="media">影集</a>
+          <a href="#moments" data-view="moments">片刻</a>
+          <a href="/" data-view="about">关于</a>
+          <a href="#archive" data-view="archive">归档</a>
+        </nav>
+
+        <button class="color-mode-toggle" id="colorModeToggle" type="button" data-theme-toggle aria-label="切换到夜间模式" title="切换到夜间模式">
+          <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M20.2 14.6A7.8 7.8 0 0 1 9.4 3.8 8.6 8.6 0 1 0 20.2 14.6Z"></path>
+          </svg>
+          <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </button>
+
+        <button class="mobile-menu-button" id="mobileMenuToggle" type="button" aria-label="打开导航菜单" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div class="mobile-menu" id="mobileMenu" hidden>
+        <nav aria-label="移动端导航">
+          <a href="#articles" data-view="articles">文章</a>
+          <a href="#media" data-view="media">影集</a>
+          <a href="#moments" data-view="moments">片刻</a>
+          <a href="/" data-view="about">关于</a>
+          <a href="#archive" data-view="archive">归档</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="site-shell">
+      <main id="top" class="content">
+        <section id="about" class="section about-section view-panel" data-view-panel="about" hidden>
+          <article class="about-copy">
+            <section class="about-chapter">
+              <h2>关于22:27</h2>
+              <p>
+                22:27是一个时间，也是这个网站的名字。我习惯用注册账号时的时间命名（平台支持特殊字符的情况下）。实在不想在起名这件事上花太多心思。
+              </p>
+              <p>
+                本站目前篇幅不多，也没有形成特完善和固定的主题，会写些关于投资的思考感悟，因为最近在这方面花了很多时间。也会像发朋友圈一样，记录些自己的日常，比如碎碎念和最近喜欢的书影音。有想法了就写一写，也不会太正式，主要是想在互联网上存储些云记忆，免得以后回想不起来都做了些什么。
+              </p>
+              <p>
+                这里的每个页面都经过多次修改，是我利用休息日和下班晚上零零散散的时间，和Codex共同完成的。大概花了两周多吧，一点点搭建成现在的样子。我不是技术出身，但是从大学开始就想有个属于自己的博客，也感谢AI，让技术不再是一道门槛，也能让我实现这个小小的愿望。
+              </p>
+            </section>
+
+            <section class="about-chapter">
+              <h2>关于我</h2>
+              <p>
+                最大的00后，今年26岁，算不上年轻，但也谈不上成熟。五年前第一次测MBTI，是INFJ-A；两年前又测了一次，没想到结果一样。今年跟风测了娱乐版SBTI是Dior-s。
+              </p>
+              <p>
+                现居北京，大概从19年就在北京，一直到现在。21年毕业参加工作，从医器行业转到互联网行业，虽然自己是小白，但很幸运，公司都是国内外行业头部企业，自己只是其中一枚普通螺丝钉。
+              </p>
+              <p>
+                自认为是个很佛系的人，但是耐力比较强，一般认准一件事情，坚持的时间会很久，有时候会被说成是固执，但我愿意接纳不同的观点和想法，这样起码撞了南墙之后可以参考其他选择。喜欢安静的地方，也可以接受在吵闹的地方独自安静。喜欢真实和一切美好的事物，有些完美主义者的缺陷。
+              </p>
+              <p>
+                先写到这里，剩下的留给以后记录吧。
+              </p>
+            </section>
+
+            <section class="about-chapter">
+              <h2>关于导航</h2>
+              <dl class="topic-list">
+                <div>
+                  <dt><a href="#calendar" data-view="calendar">首页</a></dt>
+                  <dd>以年为单位，将月份和日期分成两行纵向排列，记录重要节日、节气和时间经过。</dd>
+                </div>
+                <div>
+                  <dt><a href="#articles" data-view="articles">文章</a></dt>
+                  <dd>放些相对完整的文字，包含读书和学习笔记、日记、摘录等。</dd>
+                </div>
+                <div>
+                  <dt><a href="#media" data-view="media">影集</a></dt>
+                  <dd>收藏感兴趣的作品，包含影视、书籍、音乐、播客、综艺和现场，现场不限于演出、博物馆。</dd>
+                </div>
+                <div>
+                  <dt><a href="#moments" data-view="moments">片刻</a></dt>
+                  <dd>当作朋友圈记录生活瞬间，包含琐碎的、可能也不太值得发朋友圈的事情。</dd>
+                </div>
+              </dl>
+            </section>
+          </article>
+        </section>
+
+        <section id="moments" class="section moments-section view-panel" data-view-panel="moments" hidden>
+          <div class="moment-view-tabs" id="momentViewTabs" aria-label="片刻视图"></div>
+          <div class="moments-timeline" id="momentsTimeline"></div>
+          <div class="moments-album" id="momentsAlbum" hidden></div>
+        </section>
+
+        <section id="articles" class="section articles-section view-panel" data-view-panel="articles" hidden>
+          <div class="post-list" id="postList"></div>
+        </section>
+
+        <section id="calendar" class="section calendar-section view-panel" data-view-panel="calendar">
+          <div class="calendar-head">
+            <div class="calendar-years" id="calendarYears" aria-label="年历年份"></div>
+            <div class="calendar-title-row">
+              <h2 id="calendarTitle">2026</h2>
+              <div class="calendar-info-toggles" id="calendarInfoToggles" aria-label="日期信息显示控制"></div>
+              <button class="calendar-past-months-toggle" id="calendarPastMonthsToggle" type="button" hidden></button>
+            </div>
+            <div class="calendar-summary" id="calendarSummary"></div>
+          </div>
+          <div class="year-calendar" id="yearCalendar"></div>
+        </section>
+
+        <section id="media" class="section view-panel media-section" data-view-panel="media" hidden>
+          <div class="section-head">
+            <div class="media-type-tabs" id="mediaTypeTabs" aria-label="影集分类"></div>
+            <div class="media-search" id="mediaSearch">
+              <input id="mediaSearchInput" type="search" placeholder="找找看..." aria-label="搜索影集" />
+              <button id="mediaSearchToggle" type="button" aria-label="聚焦影集搜索">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="6.5"></circle>
+                  <path d="m16 16 4 4"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="media-shelf" id="mediaShelf"></div>
+        </section>
+
+        <section id="archive" class="section archive-section view-panel" data-view-panel="archive" hidden>
+          <div class="archive-toolbar">
+            <div class="archive-filter" id="archiveFilter" aria-label="归档主题筛选"></div>
+            <label class="archive-search">
+              <input id="archiveSearchInput" type="search" placeholder="搜索留下的内容…" aria-label="搜索归档内容" />
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="6.5"></circle>
+                <path d="m16 16 4 4"></path>
+              </svg>
+            </label>
+          </div>
+          <div class="archive-list" id="archiveList"></div>
+        </section>
+
+      </main>
+
+      <button class="aside-toggle" id="asideToggle" type="button" aria-label="隐藏右侧栏" title="隐藏右侧栏" aria-pressed="false" hidden>
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+          <path d="M15 5v14"></path>
+          <path d="m11 9-3 3 3 3"></path>
+        </svg>
+      </button>
+
+      <aside class="right-panel" aria-label="侧边信息">
+        <section class="panel-section article-search-panel" data-sidebar-module="articleSearch" hidden>
+          <div class="panel-title">
+            <span>搜索文章</span>
+          </div>
+          <label class="article-side-search">
+            <input id="articleSidebarSearchInput" type="search" placeholder="标题、标签或关键词" aria-label="搜索文章" />
+          </label>
+        </section>
+
+        <section class="panel-section about-side-panel" data-sidebar-module="timePassed" hidden>
+          <div class="panel-title">
+            <span>时间经过这里</span>
+          </div>
+          <div class="heatmap" id="heatmap" aria-label="最近三个月记录热力图"></div>
+        </section>
+
+        <section class="panel-section about-side-panel" data-sidebar-module="randomBrowse" hidden>
+          <div class="panel-title">
+            <span>随便翻翻</span>
+          </div>
+          <div class="random-note" id="randomNote"></div>
+        </section>
+
+        <section class="panel-section about-side-panel" data-sidebar-module="randomQuestion" hidden>
+          <div class="panel-title">
+            <span>快问快答</span>
+          </div>
+          <div class="about-question" id="aboutQuestion"></div>
+        </section>
+
+        <section class="panel-section tag-panel about-side-panel" data-sidebar-module="tags" hidden>
+          <div class="panel-title">
+            <span>标签</span>
+          </div>
+          <div class="tag-cloud" id="tagCloud"></div>
+          <button class="tag-toggle" id="showAllTags" type="button">全部</button>
+        </section>
+
+        <section class="panel-section moment-side-panel moment-letter-panel" data-sidebar-module="momentLetter" hidden>
+          <div class="panel-title">
+            <span>时间来信</span>
+          </div>
+          <div class="moment-letter" id="momentLetter"></div>
+        </section>
+
+        <section class="panel-section moment-side-panel moment-places-panel" data-sidebar-module="momentPlaces" hidden>
+          <div class="panel-title">
+            <span>最近经过</span>
+          </div>
+          <div class="moment-place-list" id="momentPlaces"></div>
+        </section>
+
+        <section class="panel-section moment-side-panel moment-status-panel" data-sidebar-module="momentStatus" hidden>
+          <div class="panel-title">
+            <span>此刻状态</span>
+          </div>
+          <div class="moment-status" id="momentStatus"></div>
+        </section>
+
+        <section class="panel-section about-side-panel" data-sidebar-module="siteVersion" hidden>
+          <div class="panel-title">
+            <span>目前版本</span>
+          </div>
+          <div class="about-version" id="aboutVersion"></div>
+        </section>
+
+        <section class="panel-section about-side-panel contact-panel" data-sidebar-module="contact" hidden>
+          <div class="panel-title">
+            <span>需要交流</span>
+          </div>
+          <div class="contact-links">
+            <a href="mailto:hello@example.com">Email</a>
+            <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <script src="about-questions.js?v=20260717-about-questions"></script>
+    <script src="moments-data.js?v=20260725-prelaunch-cleanup"></script>
+    <script src="app.js?v=20260725-prelaunch-cleanup"></script>
+  </body>
+</html>
