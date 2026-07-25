@@ -122,7 +122,7 @@ let posts = [
   },
 ];
 
-const aboutQuestions = window.aboutQuestionsData || [];
+const whyQuestions = window.whyQuestionsData || [];
 const CALENDAR_START_YEAR = 2026;
 const CALENDAR_END_YEAR = 2036;
 const siteConfig = {
