@@ -6,7 +6,7 @@
   "scripts": {
     "start": "python3 -m http.server 5174",
     "check": "npm run check:js",
-    "check:js": "node --check app.js && node --check moments-data.js && node --check about-questions.js && node --check scripts/sync-notion.js && node --check lib/notion-content.js && node --check api/content.js",
+    "check:js": "node --check app.js && node --check moments-data.js && node --check why-questions.js && node --check scripts/sync-notion.js && node --check lib/notion-content.js && node --check api/content.js",
     "sync:notion": "node scripts/sync-notion.js",
     "sync:notion:dry": "node scripts/sync-notion.js --dry-run",
     "build": "npm run check"
