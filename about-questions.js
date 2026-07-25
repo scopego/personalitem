@@ -615,5 +615,5 @@ window.whyQuestionsData = [
     category: "哲学",
     question: "为什么世界值得被记录？",
     answer: "因为每个瞬间都会消失，而记录让短暂拥有留下来的机会。",
-  },
+  }
 ];
