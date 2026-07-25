@@ -1,4 +1,4 @@
-window.aboutQuestionsData = [
+window.whyQuestionsData = [
   {
     id: 1,
     category: "宇宙",
@@ -617,5 +617,3 @@ window.aboutQuestionsData = [
     answer: "因为每个瞬间都会消失，而记录让短暂拥有留下来的机会。",
   }
 ];
-
-window.aboutQuestionsData = window.whyQuestionsData;
