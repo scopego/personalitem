@@ -459,7 +459,7 @@ let activeMediaNoteKey = "";
 let activeMediaNoteTriggerKey = "";
 let tagsExpanded = false;
 let randomNoteIndex = -1;
-let aboutQuestionIndex = -1;
+let whyQuestionIndex = -1;
 let activeMomentLightboxId = "";
 let activeMomentPhotoIndex = 0;
 let activeMomentView = "record";
@@ -499,7 +499,7 @@ const tagCloud = document.querySelector("#tagCloud");
 const articleSidebarSearchInput = document.querySelector("#articleSidebarSearchInput");
 const showAllTags = document.querySelector("#showAllTags");
 const randomNote = document.querySelector("#randomNote");
-const aboutQuestion = document.querySelector("#aboutQuestion");
+const whyQuestion = document.querySelector("#whyQuestion");
 const momentViewTabs = document.querySelector("#momentViewTabs");
 const momentsTimeline = document.querySelector("#momentsTimeline");
 const momentsAlbum = document.querySelector("#momentsAlbum");
@@ -2665,24 +2665,24 @@ function renderRandomNote(next = false) {
   `;
 }
 
-function renderAboutQuestion(next = false) {
-  if (!aboutQuestion || !aboutQuestions.length) return;
+function renderWhyQuestion(next = false) {
+  if (!whyQuestion || !whyQuestions.length) return;
 
-  if (aboutQuestionIndex < 0 || next) {
-    const nextIndex = Math.floor(Math.random() * aboutQuestions.length);
-    aboutQuestionIndex = aboutQuestions.length > 1 && nextIndex === aboutQuestionIndex
-      ? (nextIndex + 1) % aboutQuestions.length
+  if (whyQuestionIndex < 0 || next) {
+    const nextIndex = Math.floor(Math.random() * whyQuestions.length);
+    whyQuestionIndex = whyQuestions.length > 1 && nextIndex === whyQuestionIndex
+      ? (nextIndex + 1) % whyQuestions.length
       : nextIndex;
   }
 
-  const item = aboutQuestions[aboutQuestionIndex];
+  const item = whyQuestions[whyQuestionIndex];
   const answer = Array.isArray(item.answer) ? item.answer.join("\n") : item.answer;
   const displayAnswer = answer ? answer : "暂时没有答案。";
-  aboutQuestion.innerHTML = `
-    <div class="side-note-card about-question-card">
+  whyQuestion.innerHTML = `
+    <div class="side-note-card why-question-card">
       <h3>${escapeHtml(item.question)}</h3>
       <p>${escapeHtml(displayAnswer)}</p>
-      <button type="button" data-about-question-next>换一个 ↻</button>
+      <button type="button" data-why-question-next>换一个 ↻</button>
     </div>
   `;
 }
@@ -2750,7 +2750,7 @@ function initCustomCursor() {
     "[data-moment-view]",
     "[data-moment-photo]",
     "[data-note-key]",
-    "[data-about-question-next]",
+    "[data-why-question-next]",
     "[data-theme-toggle]",
     ".media-card",
     ".moment-photo",
@@ -3586,10 +3586,10 @@ randomNote?.addEventListener("click", (event) => {
   renderRandomNote(true);
 });
 
-aboutQuestion?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-about-question-next]");
+whyQuestion?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-why-question-next]");
   if (!button) return;
-  renderAboutQuestion(true);
+  renderWhyQuestion(true);
 });
 
 async function initApp() {
@@ -3600,7 +3600,7 @@ async function initApp() {
   setActiveView(activeView);
   renderHeatmap();
   renderRandomNote();
-  renderAboutQuestion();
+  renderWhyQuestion();
   renderAboutVersion();
   initAnimatedTitle();
   initCustomCursor();
