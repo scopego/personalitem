@@ -2563,9 +2563,8 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 
 .calendar-date-name {
   display: block;
-  width: min(100%, 3.8rem);
+  width: 2.8em;
   min-height: 1rem;
-  overflow: hidden;
   color: var(--muted);
   font-size: clamp(0.54rem, 0.7vw, 0.64rem);
   font-style: normal;
@@ -2574,7 +2573,6 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   opacity: 0;
   pointer-events: none;
   text-align: center;
-  text-overflow: ellipsis;
   white-space: nowrap;
   transition: opacity 180ms ease;
 }

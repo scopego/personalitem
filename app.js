@@ -251,6 +251,14 @@ function getCalendarFestivalDisplayName(festival) {
   return calendarFestivalShortNames[festival.name] || festival.name;
 }
 
+function getCalendarCompactDateLabel(value) {
+  const label = String(value || "").trim();
+  if (!label) return "";
+  const chars = [...label];
+  if (chars.length <= 2) return label;
+  return [...label.replace(/节$/, "")].slice(0, 2).join("");
+}
+
 const mediaTypes = ["全部", "电影", "电视剧", "纪录片", "书籍", "音乐", "播客", "综艺", "现场"];
 
 let mediaLogs = [
@@ -2035,29 +2043,23 @@ function renderCalendarPastMonthsToggle(hiddenMonthCount) {
 }
 
 function getCalendarExpandedNames(dayData) {
-  const names = [];
-  const seen = new Set();
-  const addName = (name, displayName = name) => {
-    const label = displayName || name;
-    if (!label || seen.has(label)) return;
-    seen.add(label);
-    names.push(label);
-  };
-
   if (calendarLunarNamesOpen) {
-    addName(dayData.lunar?.fullName || "", dayData.lunar?.displayName || "");
-    return names;
+    const label = getCalendarCompactDateLabel(dayData.lunar?.displayName || dayData.lunar?.fullName || "");
+    return label ? [label] : [];
   }
 
-  if (calendarHolidayNamesOpen) {
-    dayData.festivals.forEach((festival) => addName(festival.name, getCalendarFestivalDisplayName(festival)));
+  if (calendarHolidayNamesOpen && dayData.festivals.length) {
+    const festival = dayData.festivals.find((item) => !item.types?.includes("adjusted-workday")) || dayData.festivals[0];
+    const label = getCalendarCompactDateLabel(getCalendarFestivalDisplayName(festival));
+    return label ? [label] : [];
   }
 
   if (calendarSolarTermNamesOpen && dayData.solarTerm) {
-    addName(dayData.solarTerm.name);
+    const label = getCalendarCompactDateLabel(dayData.solarTerm.name);
+    return label ? [label] : [];
   }
 
-  return names;
+  return [];
 }
 
 function getCalendarDayTitle(dateKey, records) {
