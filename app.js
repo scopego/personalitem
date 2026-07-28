@@ -259,7 +259,7 @@ function getCalendarCompactDateLabel(value) {
   return [...label.replace(/节$/, "")].slice(0, 2).join("");
 }
 
-const mediaTypes = ["全部", "电影", "电视剧", "纪录片", "书籍", "音乐", "播客", "综艺", "现场"];
+const mediaTypes = ["全部", "电影", "剧集", "纪录片", "书籍", "音乐", "播客", "综艺", "现场"];
 
 let mediaLogs = [
   {
@@ -275,7 +275,7 @@ let mediaLogs = [
         poster: "assets/images/movies/media-interstellar.jpg",
       },
       {
-        type: "电视剧",
+        type: "剧集",
         title: "怪奇物语",
         creator: "The Duffer Brothers",
         review: "小镇、少年、怪谈和成长混在一起，怀旧感很浓，但情绪并不轻。",
