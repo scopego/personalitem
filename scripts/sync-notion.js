@@ -174,6 +174,13 @@ function mapMoment(page) {
   const dateTime = splitDateTime(publishedAt);
   if (!title || !dateTime.date) return null;
 
+  const localPhotos = getLocalAssetList(page, "LocalPhotos", "assets/images/moments");
+  const notionPhotos = getFiles(page, "Photos").map((file) => ({
+    src: file.url,
+    alt: file.name || title,
+    shape: "wide",
+  }));
+
   return {
     id: title,
     date: dateTime.date,
@@ -181,11 +188,7 @@ function mapMoment(page) {
     text: getRichText(page, "Content"),
     location: getRichText(page, "Location"),
     weather: getSelectName(page, "Weather") || getRichText(page, "Weather"),
-    photos: getFiles(page, "Photos").map((file) => ({
-      src: file.url,
-      alt: file.name || title,
-      shape: "wide",
-    })),
+    photos: [...localPhotos, ...notionPhotos],
     notes: [],
   };
 }
@@ -196,6 +199,7 @@ function mapMedia(page) {
 
   const finishedAt = getDateStart(page, "FinishedAt") || getDateStart(page, "SortDate") || "";
   const cover = getFiles(page, "Cover")[0];
+  const localPoster = getLocalAssetPath(getRichText(page, "LocalPoster"), "assets/images/movies");
 
   return {
     month: finishedAt ? finishedAt.slice(0, 7).replace("-", ".") : "未归档",
@@ -207,7 +211,7 @@ function mapMedia(page) {
       review: getRichText(page, "Review"),
       cover: "a",
       url: getUrl(page, "SourceURL") || "#",
-      poster: cover?.url || "",
+      poster: localPoster || cover?.url || "",
       rating: getNumber(page, "Rating"),
     },
   };
@@ -345,6 +349,28 @@ function getFiles(page, name) {
     name: file.name || "",
     url: file.type === "external" ? file.external?.url : file.file?.url,
   })).filter((file) => file.url);
+}
+
+function getLocalAssetList(page, name, basePath) {
+  return splitLocalAssetValue(getRichText(page, name)).map((value) => ({
+    src: getLocalAssetPath(value, basePath),
+    alt: value,
+    shape: "wide",
+  })).filter((photo) => photo.src);
+}
+
+function splitLocalAssetValue(value) {
+  return String(value || "")
+    .split(/[\n,，;；]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getLocalAssetPath(value, basePath) {
+  const path = String(value || "").trim();
+  if (!path) return "";
+  if (/^(https?:)?\/\//.test(path) || path.startsWith("/") || path.startsWith("assets/")) return path;
+  return `${basePath}/${path}`;
 }
 
 function getRelationNames() {

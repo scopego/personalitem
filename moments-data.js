@@ -38,7 +38,7 @@ window.momentsData = [
     location: "北京",
     photos: [
       {
-        src: "assets/images/moment-evening-sky.jpg",
+        src: "assets/images/moments/moment-evening-sky.jpg",
         alt: "傍晚时分的城市天空",
         shape: "portrait",
         width: 1400,
@@ -55,17 +55,17 @@ window.momentsData = [
     location: "鼓楼",
     photos: [
       {
-        src: "assets/images/moment-city-street.jpg",
+        src: "assets/images/moments/moment-city-street.jpg",
         alt: "城市街道与建筑",
         shape: "portrait",
       },
       {
-        src: "assets/images/moment-window-shadow.jpg",
+        src: "assets/images/moments/moment-window-shadow.jpg",
         alt: "路边窗户与树影",
         shape: "square",
       },
       {
-        src: "assets/images/moment-city-dusk.jpg",
+        src: "assets/images/moments/moment-city-dusk.jpg",
         alt: "傍晚城市远景",
         shape: "wide",
       },
@@ -80,12 +80,12 @@ window.momentsData = [
     location: "北京",
     photos: [
       {
-        src: "assets/images/moment-cloud-mountain.jpg",
+        src: "assets/images/moments/moment-cloud-mountain.jpg",
         alt: "云层与远处山影",
         shape: "wide",
       },
       {
-        src: "assets/images/moment-trees-light.jpg",
+        src: "assets/images/moments/moment-trees-light.jpg",
         alt: "树木与柔和光线",
         shape: "portrait",
       },
@@ -109,32 +109,32 @@ window.momentsData = [
     location: "三里屯",
     photos: [
       {
-        src: "assets/images/moment-cloud-mountain.jpg",
+        src: "assets/images/moments/moment-cloud-mountain.jpg",
         alt: "开阔路边风景",
         shape: "wide",
       },
       {
-        src: "assets/images/moment-water-building.jpg",
+        src: "assets/images/moments/moment-water-building.jpg",
         alt: "水面与建筑",
         shape: "square",
       },
       {
-        src: "assets/images/moment-evening-sky.jpg",
+        src: "assets/images/moments/moment-evening-sky.jpg",
         alt: "黄昏草地",
         shape: "wide",
       },
       {
-        src: "assets/images/moment-window-shadow.jpg",
+        src: "assets/images/moments/moment-window-shadow.jpg",
         alt: "室外建筑局部",
         shape: "portrait",
       },
       {
-        src: "assets/images/moment-city-street.jpg",
+        src: "assets/images/moments/moment-city-street.jpg",
         alt: "街道楼群",
         shape: "portrait",
       },
       {
-        src: "assets/images/moment-city-dusk.jpg",
+        src: "assets/images/moments/moment-city-dusk.jpg",
         alt: "城市天际线",
         shape: "wide",
       },
@@ -149,7 +149,7 @@ window.momentsData = [
     location: "回家的路上",
     photos: [
       {
-        src: "assets/images/moment-night-sky.jpg",
+        src: "assets/images/moments/moment-night-sky.jpg",
         alt: "夜晚天空与光影",
         shape: "wide",
         width: 900,

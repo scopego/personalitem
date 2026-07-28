@@ -272,7 +272,7 @@ let mediaLogs = [
         review: "宏大的科幻设定最后落在亲情上，时间被拍成一种具体的重量。",
         cover: "a",
         url: "https://movie.douban.com/subject/1889243/",
-        poster: "assets/images/media-interstellar.jpg",
+        poster: "assets/images/movies/media-interstellar.jpg",
       },
       {
         type: "电视剧",
@@ -281,7 +281,7 @@ let mediaLogs = [
         review: "小镇、少年、怪谈和成长混在一起，怀旧感很浓，但情绪并不轻。",
         cover: "a",
         url: "https://www.douban.com/search?q=%E6%80%AA%E5%A5%87%E7%89%A9%E8%AF%AD%20%E7%AC%AC%E4%B8%80%E5%AD%A3",
-        poster: "assets/images/media-stranger-things.svg",
+        poster: "assets/images/movies/media-stranger-things.svg",
       },
       {
         type: "纪录片",
@@ -290,7 +290,7 @@ let mediaLogs = [
         review: "自然影像的尺度很开阔，很多瞬间像重新校准了对世界的感知。",
         cover: "b",
         url: "https://movie.douban.com/subject/1871906/",
-        poster: "assets/images/media-planet-earth.svg",
+        poster: "assets/images/movies/media-planet-earth.svg",
       },
       {
         type: "书籍",
@@ -299,7 +299,7 @@ let mediaLogs = [
         review: "寻找不是抵达某个答案，而是慢慢学会听见自己的河流。",
         cover: "d",
         url: "https://book.douban.com/subject/26980487/",
-        poster: "assets/images/media-siddhartha.svg",
+        poster: "assets/images/movies/media-siddhartha.svg",
       },
       {
         type: "音乐",
@@ -308,7 +308,7 @@ let mediaLogs = [
         review: "旋律、空间和情绪都很克制，越听越像一场低声的自我整理。",
         cover: "c",
         url: "https://www.douban.com/search?q=In%20Rainbows%20Radiohead",
-        poster: "assets/images/media-in-rainbows.png",
+        poster: "assets/images/movies/media-in-rainbows.png",
       },
       {
         type: "播客",
@@ -317,7 +317,7 @@ let mediaLogs = [
         review: "谈话密度很高，但节奏不压迫，适合在通勤和散步时慢慢听。",
         cover: "d",
         url: "https://www.douban.com/search?q=%E5%BF%BD%E5%B7%A6%E5%BF%BD%E5%8F%B3",
-        poster: "assets/images/media-left-right.svg",
+        poster: "assets/images/movies/media-left-right.svg",
       },
       {
         type: "综艺",
@@ -326,7 +326,7 @@ let mediaLogs = [
         review: "有时锋利，有时笨拙，但好在一直保留了提问的姿态。",
         cover: "b",
         url: "https://www.douban.com/search?q=%E5%8D%81%E4%B8%89%E9%82%80",
-        poster: "assets/images/media-thirteen-talks.svg",
+        poster: "assets/images/movies/media-thirteen-talks.svg",
       },
       {
         type: "现场",
@@ -335,7 +335,7 @@ let mediaLogs = [
         review: "舞台不断生长，身体和节奏一起把现场感推到非常纯粹的位置。",
         cover: "c",
         url: "https://www.douban.com/search?q=Stop%20Making%20Sense%20Talking%20Heads",
-        poster: "assets/images/media-stop-making-sense.svg",
+        poster: "assets/images/movies/media-stop-making-sense.svg",
       },
     ],
   },

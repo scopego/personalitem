@@ -86,10 +86,20 @@ Notion Token 只存在于 Vercel 后台，不会出现在浏览器里。
 
 - `FinishedAt`：作品完成日期。网站影集浮层中的日期使用这个字段，不再按作品顺序自动生成 7/1、7/2。
 - `Rating`：数字评分，支持 `1`、`1.5`、`2`、`2.5`、`3`、`3.5`、`4`、`4.5`、`5`。
+- `LocalPoster`：本地封面路径。图片放在 `assets/images/movies/` 后，这里可以只填文件名，例如 `ghost-palace.webp`。如果填完整路径，例如 `assets/images/movies/ghost-palace.webp`，也可以。
 
 ### Moments
 
 - `Weather`：天气下拉选项。网站会把它显示在每条片刻的时分旁边。
+- `LocalPhotos`：本地图片路径。图片放在 `assets/images/moments/` 后，这里可以填一个或多个文件名。多张图用换行、逗号或分号分隔。
+
+例如：
+
+```text
+walk-01.jpg
+walk-02.jpg
+walk-03.jpg
+```
 
 可选值：
 
