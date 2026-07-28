@@ -62,12 +62,14 @@ npm run sync:notion
 - `NOTION_ARTICLES_SOURCE_ID`
 - `NOTION_MOMENTS_SOURCE_ID`
 - `NOTION_MEDIA_SOURCE_ID`
+- `NOTION_SITE_CONFIG_SOURCE_ID`（可选，用于读取「此刻状态」等站点配置）
 
 当前三个数据库 ID 是：
 
 - `NOTION_ARTICLES_SOURCE_ID=791dab33-3e08-44e7-be50-32999a1a8a22`
 - `NOTION_MOMENTS_SOURCE_ID=f127c184-3eb3-485f-807a-bd9636b8663c`
 - `NOTION_MEDIA_SOURCE_ID=6ef32171-3c27-42bf-a241-3bb275da4718`
+- `NOTION_SITE_CONFIG_SOURCE_ID=11206174-be7c-4817-ac8a-515f40496a36`
 
 之后日常更新流程就是：
 
@@ -77,3 +79,44 @@ npm run sync:notion
 4. 网站通过 `/api/content` 读取最新 Notion 内容。
 
 Notion Token 只存在于 Vercel 后台，不会出现在浏览器里。
+
+## 字段说明
+
+### Media
+
+- `FinishedAt`：作品完成日期。网站影集浮层中的日期使用这个字段，不再按作品顺序自动生成 7/1、7/2。
+- `Rating`：数字评分，支持 `1`、`1.5`、`2`、`2.5`、`3`、`3.5`、`4`、`4.5`、`5`。
+
+### Moments
+
+- `Weather`：天气下拉选项。网站会把它显示在每条片刻的时分旁边。
+
+可选值：
+
+- `☀️ 晴`
+- `🌤️ 多云`
+- `☁️ 阴`
+- `🌫️ 雾霾`
+- `🌧️ 小雨`
+- `⛈️ 雷雨`
+- `❄️ 下雪`
+- `🌬️ 大风`
+- `🌈 雨后`
+- `🌙 夜晚`
+- `🔥 炎热`
+- `❄️ 寒冷`
+
+### SiteConfig
+
+如果需要从 Notion 控制片刻页面右侧栏「此刻状态」，在 SiteConfig 新增或编辑这一行：
+
+- `Key`：`momentStatus.current`
+- `Type`：`json`
+- `Visible`：勾选
+- `Value`：
+
+```json
+{"id":"notion-current-status","emoji":"🙂","text":"正在整理网站。","updatedAt":"今天"}
+```
+
+之后只需要修改 `emoji`、`text`、`updatedAt`，网站刷新后会读取这条配置。

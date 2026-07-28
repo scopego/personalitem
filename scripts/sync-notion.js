@@ -18,6 +18,7 @@ const config = {
   articlesSourceId: process.env.NOTION_ARTICLES_SOURCE_ID,
   momentsSourceId: process.env.NOTION_MOMENTS_SOURCE_ID,
   mediaSourceId: process.env.NOTION_MEDIA_SOURCE_ID,
+  siteConfigSourceId: process.env.NOTION_SITE_CONFIG_SOURCE_ID,
 };
 
 main().catch((error) => {
@@ -28,16 +29,18 @@ main().catch((error) => {
 async function main() {
   validateConfig(config);
 
-  const [articles, moments, mediaRows] = await Promise.all([
+  const [articles, moments, mediaRows, siteConfigRows] = await Promise.all([
     queryDataSource(config.articlesSourceId),
     queryDataSource(config.momentsSourceId),
     queryDataSource(config.mediaSourceId),
+    config.siteConfigSourceId ? queryDataSource(config.siteConfigSourceId) : Promise.resolve([]),
   ]);
 
   const output = {
     articles: articles.map(mapArticle).filter(Boolean),
     moments: moments.map(mapMoment).filter(Boolean),
     media: groupMediaByMonth(mediaRows.map(mapMedia).filter(Boolean)),
+    siteConfig: mapSiteConfig(siteConfigRows),
   };
 
   output.articles.sort((a, b) => compareDateDesc(a.date, b.date));
@@ -57,9 +60,11 @@ async function main() {
   writeJson("articles.json", output.articles);
   writeJson("moments.json", output.moments);
   writeJson("media.json", output.media);
+  writeJson("site-config.json", output.siteConfig);
   writeJs("articles.generated.js", "window.generatedArticlesData", output.articles);
   writeJs("moments.generated.js", "window.generatedMomentsData", output.moments);
   writeJs("media.generated.js", "window.generatedMediaData", output.media);
+  writeJs("site-config.generated.js", "window.generatedSiteConfig", output.siteConfig);
 
   console.log(`Synced ${output.articles.length} articles, ${output.moments.length} moments, ${output.media.reduce((count, group) => count + group.items.length, 0)} media items.`);
 }
@@ -165,6 +170,7 @@ function mapMoment(page) {
     time: dateTime.time,
     text: getRichText(page, "Content"),
     location: getRichText(page, "Location"),
+    weather: getSelectName(page, "Weather") || getRichText(page, "Weather"),
     photos: getFiles(page, "Photos").map((file) => ({
       src: file.url,
       alt: file.name || title,
@@ -184,6 +190,7 @@ function mapMedia(page) {
   return {
     month: finishedAt ? finishedAt.slice(0, 7).replace("-", ".") : "未归档",
     item: {
+      date: finishedAt,
       type: getSelectName(page, "Type") || "综合",
       title,
       creator: getRichText(page, "Creator"),
@@ -237,7 +244,53 @@ function groupMediaByMonth(rows) {
     groups.get(month).items.push(item);
   });
 
-  return [...groups.values()].sort((a, b) => b.month.localeCompare(a.month));
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      items: group.items.sort((a, b) => compareDateDesc(a.date, b.date)),
+    }))
+    .sort((a, b) => b.month.localeCompare(a.month));
+}
+
+function mapSiteConfig(pages = []) {
+  const values = new Map();
+
+  pages.forEach((page) => {
+    if (getCheckbox(page, "Visible") === false) return;
+    const key = getTitle(page, "Key");
+    const rawValue = getRichText(page, "Value");
+    if (!key || !rawValue) return;
+    values.set(key, parseSiteConfigValue(rawValue, getSelectName(page, "Type")));
+  });
+
+  return {
+    activeMomentStatus: normalizeMomentStatusConfig(
+      values.get("momentStatus.current") || values.get("currentMomentStatus"),
+    ),
+  };
+}
+
+function parseSiteConfigValue(value, type) {
+  if (type === "json") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  return value;
+}
+
+function normalizeMomentStatusConfig(value) {
+  if (!value || typeof value !== "object") return null;
+  const text = String(value.text || "").trim();
+  if (!text) return null;
+  return {
+    id: String(value.id || "notion-current-status"),
+    emoji: String(value.emoji || ""),
+    text,
+    updatedAt: String(value.updatedAt || "今天"),
+  };
 }
 
 function getProperty(page, name) {
@@ -260,6 +313,12 @@ function getSelectName(page, name) {
 
 function getNumber(page, name) {
   return getProperty(page, name)?.number ?? null;
+}
+
+function getCheckbox(page, name) {
+  const property = getProperty(page, name);
+  if (!property || property.checkbox == null) return null;
+  return Boolean(property.checkbox);
 }
 
 function getUrl(page, name) {

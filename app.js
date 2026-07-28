@@ -638,6 +638,9 @@ async function loadLiveContent() {
     if (Array.isArray(content.media) && content.media.length) {
       mediaLogs = content.media;
     }
+    if (content.siteConfig?.activeMomentStatus) {
+      activeMomentStatusItem = content.siteConfig.activeMomentStatus;
+    }
   } catch {
     // Keep local fallback data when Notion is not configured or temporarily unavailable.
   } finally {
@@ -687,8 +690,16 @@ function getMediaRecordLabel(items) {
   return `共 ${items.length} 条记录。`;
 }
 
-function getRatingDots() {
-  return "●●●●○";
+function getRatingDots(rating = 4) {
+  const value = Math.max(0, Math.min(5, Number(rating) || 0));
+  const full = Math.floor(value);
+  const hasHalf = value - full >= 0.5;
+
+  return Array.from({ length: 5 }, (_, index) => {
+    if (index < full) return "●";
+    if (index === full && hasHalf) return "◐";
+    return "○";
+  }).join("");
 }
 
 function getMediaTypeLabel(type) {
@@ -1819,11 +1830,12 @@ function renderMomentDateTime(moment) {
     weekday: "short",
     timeZone: "Asia/Shanghai",
   }).format(new Date(`${moment.date}T00:00:00+08:00`));
+  const weather = moment.weather ? `<span class="moment-weather">${escapeHtml(moment.weather)}</span>` : "";
 
   return `
     <time class="moment-time" datetime="${moment.date}T${moment.time}">
       <span>${formatShortDate(moment.date)} · ${weekday}</span>
-      <span>${moment.time}</span>
+      <span>${moment.time}${weather}</span>
     </time>
   `;
 }
@@ -2330,7 +2342,9 @@ function getRandomMomentStatus(currentId = "") {
 
 function ensureMomentStatusItem(forceNext = false) {
   if (!activeMomentStatusItem || forceNext) {
-    activeMomentStatusItem = getRandomMomentStatus(forceNext ? activeMomentStatusItem?.id : "");
+    activeMomentStatusItem = forceNext
+      ? getRandomMomentStatus(activeMomentStatusItem?.id)
+      : getMomentStatusLibrary()[0] || null;
   }
   return activeMomentStatusItem;
 }
@@ -2488,7 +2502,7 @@ function renderMediaShelf() {
                       (item, itemIndex) => {
                         const noteKey = getMediaNoteKey(group, item);
                         const noteCount = getMediaNoteCount(mediaNotes, noteKey);
-                        const mediaDate = `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
+                        const mediaDate = item.date || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
                         const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
                         return `
                         <article class="media-card" data-note-key="${escapeHtml(noteKey)}">
@@ -2504,7 +2518,7 @@ function renderMediaShelf() {
                               <div class="media-meta">
                                 <span>${mediaTime}</span>
                                 <span aria-hidden="true">·</span>
-                                <span class="rating">${getRatingDots()}</span>
+                                <span class="rating">${getRatingDots(item.rating)}</span>
                               </div>
                             </div>
                           </div>
@@ -3039,7 +3053,7 @@ function setActiveView(view) {
   topNav?.classList.remove("is-hidden");
   activeView = nextView;
   if (previousView !== "moments" && activeView === "moments" && !activeMomentStatusItem) {
-    activeMomentStatusItem = getRandomMomentStatus();
+    activeMomentStatusItem = getMomentStatusLibrary()[0] || null;
     renderMomentSidePanel();
   }
   if (activeView !== "articles") {

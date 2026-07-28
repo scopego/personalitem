@@ -1713,7 +1713,20 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 }
 
 .moment-time span:last-child {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  line-height: 1.2;
+}
+
+.moment-weather {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
   line-height: 1.2;
 }
 
