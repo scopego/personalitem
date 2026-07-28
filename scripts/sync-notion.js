@@ -33,7 +33,7 @@ async function main() {
     queryDataSource(config.articlesSourceId),
     queryDataSource(config.momentsSourceId),
     queryDataSource(config.mediaSourceId),
-    config.siteConfigSourceId ? queryDataSource(config.siteConfigSourceId) : Promise.resolve([]),
+    queryOptionalDataSource(config.siteConfigSourceId),
   ]);
 
   const output = {
@@ -67,6 +67,16 @@ async function main() {
   writeJs("site-config.generated.js", "window.generatedSiteConfig", output.siteConfig);
 
   console.log(`Synced ${output.articles.length} articles, ${output.moments.length} moments, ${output.media.reduce((count, group) => count + group.items.length, 0)} media items.`);
+}
+
+async function queryOptionalDataSource(sourceId) {
+  if (!sourceId) return [];
+
+  try {
+    return await queryDataSource(sourceId);
+  } catch {
+    return [];
+  }
 }
 
 function loadEnvFile(filePath) {
