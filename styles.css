@@ -459,6 +459,18 @@ input {
   font: inherit;
 }
 
+button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+a,
+button,
+summary,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .top-nav {
   position: fixed;
   z-index: 9000;
