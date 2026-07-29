@@ -522,6 +522,7 @@ const colorModeToggle = document.querySelector("#colorModeToggle");
 const mobileMenuToggle = document.querySelector("#mobileMenuToggle");
 const mobileMenu = document.querySelector("#mobileMenu");
 let navPinnedOpen = false;
+let mobileMenuCloseTimer = 0;
 let asideState = "closed";
 
 const sidebarModulesByPage = {
@@ -3097,10 +3098,21 @@ function getInitialView() {
 }
 
 function setMobileMenu(open) {
+  window.clearTimeout(mobileMenuCloseTimer);
   navPinnedOpen = open;
   mobileMenuToggle?.setAttribute("aria-expanded", String(open));
   if (mobileMenu) {
-    mobileMenu.hidden = !open;
+    if (open) {
+      mobileMenu.hidden = false;
+      requestAnimationFrame(() => {
+        mobileMenu.classList.add("is-open");
+      });
+    } else {
+      mobileMenu.classList.remove("is-open");
+      mobileMenuCloseTimer = window.setTimeout(() => {
+        if (!navPinnedOpen) mobileMenu.hidden = true;
+      }, 220);
+    }
   }
   topNav?.classList.remove("is-hidden");
 }

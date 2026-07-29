@@ -655,15 +655,13 @@ html[data-theme="dark"] .theme-icon-sun {
 }
 
 .mobile-menu {
-  width: min(calc(100% - (var(--page-gutter) * 2)), var(--site-content-max-width));
-  margin: 0 auto;
-  padding: 0 0 1rem;
+  display: none;
 }
 
 .mobile-menu nav {
-  display: grid;
-  gap: 0.12rem;
-  padding-top: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .mobile-menu a,
@@ -672,7 +670,8 @@ html[data-theme="dark"] .theme-icon-sun {
   font-size: 15px;
   font-weight: 500;
   line-height: 1.4;
-  padding: 0.58rem 0;
+  padding: 0.35rem 0.12rem;
+  white-space: nowrap;
 }
 
 .mobile-menu a:hover,
@@ -2446,13 +2445,22 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   gap: 0.18rem;
   min-width: 0;
   min-height: clamp(3rem, 3.85vw, 3.5rem);
+  appearance: none;
+  -webkit-appearance: none;
   border: 0;
+  border-radius: 0;
   background: transparent;
   color: var(--body);
   cursor: pointer;
   font: inherit;
   padding: 0;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-day,
+.calendar-day * {
+  -webkit-touch-callout: none;
 }
 
 .calendar-day span {
@@ -2668,6 +2676,18 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 
 .calendar-day:focus-visible {
   outline: 0;
+}
+
+.calendar-day:active,
+.calendar-day:focus {
+  background: transparent;
+  box-shadow: none;
+}
+
+.calendar-day:active strong,
+.calendar-day:active .calendar-date-marks,
+.calendar-day:active .calendar-date-name {
+  background-color: transparent;
 }
 
 .calendar-day-detail {
@@ -5078,6 +5098,54 @@ html[data-theme="dark"] .rating {
     justify-self: end;
   }
 
+  .mobile-menu {
+    position: absolute;
+    top: 0;
+    right: calc(var(--page-gutter) + 2.7rem);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: min(15.6rem, calc(100vw - (var(--page-gutter) * 2) - 5.7rem));
+    height: var(--header-height);
+    margin: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 0.25rem 0 0;
+    pointer-events: none;
+    transform: scaleX(0.62);
+    transform-origin: right center;
+    transition:
+      opacity 160ms ease,
+      transform 220ms cubic-bezier(0.2, 1, 0.32, 1);
+  }
+
+  .mobile-menu[hidden] {
+    display: none;
+  }
+
+  .mobile-menu.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scaleX(1);
+  }
+
+  .mobile-menu nav {
+    justify-content: flex-end;
+    gap: clamp(0.42rem, 2vw, 0.62rem);
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mobile-menu nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-menu a {
+    font-size: 14px;
+    padding: 0.35rem 0.08rem;
+  }
+
   .right-panel {
     display: grid;
     padding-top: 0;
@@ -5232,8 +5300,15 @@ html[data-theme="dark"] .rating {
     width: 100%;
     min-width: 0;
     overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-tap-highlight-color: transparent;
     grid-template-columns: repeat(31, 2.05rem);
     gap: 0.24rem;
+  }
+
+  .calendar-days::-webkit-scrollbar {
+    display: none;
   }
 
   .calendar-day {
