@@ -2397,6 +2397,10 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
     visibility 0s linear 0s;
 }
 
+.calendar-mobile-year-items {
+  display: none;
+}
+
 .calendar-years:not(.is-open) .calendar-year-items {
   opacity: 0;
   pointer-events: none;
@@ -2951,6 +2955,10 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   border-radius: inherit;
   background: var(--accent);
   animation: calendarProgressGrow 820ms cubic-bezier(0.2, 1, 0.32, 1) both;
+}
+
+.calendar-progress-track span.is-static {
+  animation: none;
 }
 
 @keyframes calendarProgressGrow {
@@ -5052,6 +5060,11 @@ html[data-theme="dark"] .rating {
     --grid-gap: 1.5rem;
     --section-top-offset: 0.85rem;
     --page-top-offset: calc(var(--header-height) + 0.9rem);
+    --mobile-nav-gap: 1rem;
+    --mobile-calendar-month-size: 20px;
+    --mobile-calendar-date-size: 18px;
+    --mobile-calendar-note-size: 12px;
+    --mobile-calendar-weekday-size: 12px;
   }
 
   body {
@@ -5074,7 +5087,7 @@ html[data-theme="dark"] .rating {
   .site-shell {
     display: grid;
     grid-template-columns: 1fr;
-    width: min(calc(100% - 2rem), var(--site-content-max-width));
+    width: min(calc(100% - (var(--page-gutter) * 2)), var(--site-content-max-width));
     padding-top: var(--page-top-offset);
     padding-bottom: 1.6rem;
   }
@@ -5156,11 +5169,11 @@ html[data-theme="dark"] .rating {
   .mobile-menu {
     position: absolute;
     top: 0;
-    right: calc(var(--page-gutter) + 2.7rem);
+    right: calc(var(--page-gutter) + 3.25rem);
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    width: min(15.6rem, calc(100vw - (var(--page-gutter) * 2) - 5.7rem));
+    width: min(12.2rem, calc(100vw - (var(--page-gutter) * 2) - 6.25rem));
     height: var(--header-height);
     margin: 0;
     opacity: 0;
@@ -5186,7 +5199,7 @@ html[data-theme="dark"] .rating {
 
   .mobile-menu nav {
     justify-content: flex-end;
-    gap: clamp(0.42rem, 2vw, 0.62rem);
+    gap: var(--mobile-nav-gap);
     max-width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
@@ -5199,6 +5212,16 @@ html[data-theme="dark"] .rating {
   .mobile-menu a {
     font-size: 14px;
     padding: 0.35rem 0.08rem;
+  }
+
+  .brand .brand-title {
+    font-size: 0;
+  }
+
+  .brand .brand-title::after {
+    content: "此时此刻";
+    font-size: 1.18rem;
+    letter-spacing: 0.03em;
   }
 
   .right-panel {
@@ -5436,56 +5459,93 @@ html[data-theme="dark"] .rating {
 
   .calendar-head {
     grid-template-columns: 1fr;
-    gap: 0.85rem;
-    margin-bottom: 1.45rem;
+    gap: 0.72rem;
+    margin-bottom: 1.55rem;
   }
 
   .calendar-head h2 {
-    grid-column: 1;
-    grid-row: 2;
-    font-size: clamp(2.7rem, 16vw, 3.8rem);
+    display: none;
   }
 
   .calendar-title-row {
-    flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
+    grid-column: 1;
+    grid-row: 2;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 1.1rem;
+    width: 100%;
   }
 
   .calendar-info-toggles {
+    flex: 0 0 auto;
     transform: none;
   }
 
   .calendar-past-months-toggle {
-    flex-basis: 100%;
+    flex: 0 0 auto;
     width: max-content;
     max-width: 100%;
+    min-height: 1.8rem;
+    font-size: 12px;
+    padding: 0.22rem 0.62rem;
   }
 
   .calendar-year-items {
-    position: static;
-    max-width: 100%;
-    overflow-x: auto;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-    visibility: visible;
-    scrollbar-width: none;
+    display: none;
   }
 
   .calendar-years:not(.is-open) .calendar-year-items {
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-    visibility: visible;
+    display: none;
   }
 
   .calendar-years:not(.is-open) .calendar-year-items button {
-    opacity: 1;
-    transform: none;
+    display: none;
   }
 
   .calendar-years .calendar-menu-button {
     display: none;
+  }
+
+  .calendar-years {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    min-height: 2.05rem;
+  }
+
+  .calendar-mobile-year-items {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    scroll-padding-inline: 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .calendar-mobile-year-items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .calendar-mobile-year-items button {
+    flex: 0 0 20%;
+    min-width: 20%;
+    scroll-snap-align: start;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.35;
+    padding: 0;
+    text-align: left;
+  }
+
+  .calendar-mobile-year-items button[data-decade-start="true"]:not(:first-child) {
+    margin-left: 1.25rem;
+  }
+
+  .calendar-mobile-year-items button.active {
+    color: var(--accent);
+    font-weight: 650;
   }
 
   .calendar-year-items::-webkit-scrollbar {
@@ -5500,23 +5560,46 @@ html[data-theme="dark"] .rating {
     font-size: 12px;
   }
 
+  .calendar-holiday-source {
+    display: none;
+  }
+
+  .calendar-progress {
+    gap: 0.55rem;
+    width: 100%;
+  }
+
+  .calendar-progress > div:first-child {
+    font-size: 12px;
+  }
+
+  .calendar-progress-track {
+    width: 100%;
+  }
+
   .calendar-month {
     width: 100%;
     max-width: 100%;
     overflow: visible;
     overscroll-behavior-x: contain;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .calendar-month h3 {
+    font-size: var(--mobile-calendar-month-size);
+    line-height: 1.25;
   }
 
   .calendar-days {
     width: 100%;
     min-width: 0;
     overflow-x: auto;
+    scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-tap-highlight-color: transparent;
-    grid-template-columns: repeat(31, 2.05rem);
-    gap: 0.24rem;
+    grid-template-columns: repeat(31, calc((100vw - (var(--page-gutter) * 2)) / 7));
+    gap: 0;
   }
 
   .calendar-days::-webkit-scrollbar {
@@ -5524,17 +5607,43 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-day {
-    min-height: 3rem;
+    align-items: flex-start;
+    min-height: 4.3rem;
+    pointer-events: none;
+    scroll-snap-align: none;
+  }
+
+  .calendar-day:first-child,
+  .calendar-day.is-sunday {
+    scroll-snap-align: start;
   }
 
   .calendar-day strong {
-    width: 26.5px;
-    height: 26.5px;
-    font-size: 0.92rem;
+    width: 32px;
+    height: 32px;
+    font-size: var(--mobile-calendar-date-size);
+    pointer-events: auto;
+  }
+
+  .calendar-day span,
+  .calendar-date-marks,
+  .calendar-date-name {
+    width: 32px;
+    text-align: center;
   }
 
   .calendar-day span {
-    font-size: 0.68rem;
+    font-size: var(--mobile-calendar-weekday-size);
+  }
+
+  .calendar-date-name {
+    width: 32px;
+    font-size: var(--mobile-calendar-note-size);
+  }
+
+  .calendar-date-marks {
+    flex-basis: 0.8rem;
+    height: 0.8rem;
   }
 
   .calendar-year-items {
@@ -5659,6 +5768,7 @@ html[data-theme="dark"] .rating {
   :root {
     --header-height: 3.65rem;
     --page-gutter: 0.92rem;
+    --mobile-nav-gap: 1rem;
   }
 
   .top-nav-inner {
@@ -5680,12 +5790,8 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu {
-    right: calc(var(--page-gutter) + 2.45rem);
-    width: min(14.9rem, calc(100vw - (var(--page-gutter) * 2) - 5.15rem));
-  }
-
-  .mobile-menu nav {
-    gap: 0.46rem;
+    right: calc(var(--page-gutter) + 3.2rem);
+    width: min(12.2rem, calc(100vw - (var(--page-gutter) * 2) - 6.1rem));
   }
 
   .mobile-menu a {
@@ -5701,21 +5807,13 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-day {
-    min-height: 2.9rem;
+    min-height: 4.3rem;
   }
 }
 
 @media (max-width: 390px) {
-  .site-shell {
-    width: min(calc(100% - 1.5rem), var(--site-content-max-width));
-  }
-
   .mobile-menu {
-    width: min(13.4rem, calc(100vw - (var(--page-gutter) * 2) - 5rem));
-  }
-
-  .mobile-menu nav {
-    gap: 0.38rem;
+    width: min(11.9rem, calc(100vw - (var(--page-gutter) * 2) - 6rem));
   }
 
   .mobile-menu a {
@@ -5741,10 +5839,6 @@ html[data-theme="dark"] .rating {
   .moment-text {
     font-size: 14.5px;
   }
-
-  .calendar-days {
-    grid-template-columns: repeat(31, 1.96rem);
-  }
 }
 
 @media (max-width: 375px) {
@@ -5757,11 +5851,8 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu {
-    width: min(12.8rem, calc(100vw - (var(--page-gutter) * 2) - 4.85rem));
-  }
-
-  .mobile-menu nav {
-    gap: 0.32rem;
+    right: calc(var(--page-gutter) + 3rem);
+    width: min(11.6rem, calc(100vw - (var(--page-gutter) * 2) - 5.8rem));
   }
 
   .mobile-menu a {
@@ -5782,13 +5873,8 @@ html[data-theme="dark"] .rating {
   .media-search {
     width: 8.25rem;
   }
-
-  .calendar-days {
-    grid-template-columns: repeat(31, 1.88rem);
-  }
-
   .calendar-day strong {
-    width: 25px;
-    height: 25px;
+    width: 31px;
+    height: 31px;
   }
 }

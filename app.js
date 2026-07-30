@@ -125,6 +125,8 @@ let posts = [
 const whyQuestions = window.whyQuestionsData || [];
 const CALENDAR_START_YEAR = 2026;
 const CALENDAR_END_YEAR = 2036;
+const CALENDAR_MOBILE_START_YEAR = 2000;
+const CALENDAR_MOBILE_END_YEAR = 2039;
 const siteConfig = {
   version: "V1.0",
   startedAt: "2026-07-02",
@@ -523,6 +525,7 @@ const mobileMenuToggle = document.querySelector("#mobileMenuToggle");
 const mobileMenu = document.querySelector("#mobileMenu");
 let navPinnedOpen = false;
 let mobileMenuCloseTimer = 0;
+let calendarProgressAnimatedYear = null;
 let asideState = "closed";
 
 const sidebarModulesByPage = {
@@ -1030,6 +1033,13 @@ function getCalendarYears() {
   return Array.from(
     { length: CALENDAR_END_YEAR - CALENDAR_START_YEAR + 1 },
     (_, index) => CALENDAR_START_YEAR + index,
+  );
+}
+
+function getCalendarMobileYears() {
+  return Array.from(
+    { length: CALENDAR_MOBILE_END_YEAR - CALENDAR_MOBILE_START_YEAR + 1 },
+    (_, index) => CALENDAR_MOBILE_START_YEAR + index,
   );
 }
 
@@ -2000,20 +2010,38 @@ function renderCalendarYears() {
   if (!calendarYears) return;
 
   const years = getCalendarYears();
+  const mobileYears = getCalendarMobileYears();
   const menuButton = `
     <button class="calendar-menu-button ${calendarYearsOpen ? "active" : ""}" type="button" data-calendar-menu aria-label="展开或收起年份" aria-expanded="${calendarYearsOpen}">
       <span class="media-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
   `;
+  const renderYearButton = (year, index) =>
+    `<button class="${year === activeCalendarYear ? "active" : ""}" type="button" data-calendar-year="${year}" data-decade-start="${year % 10 === 0 ? "true" : "false"}" style="--tab-index: ${index + 1}">${year}</button>`;
   const yearButtons = years
     .map(
-      (year, index) =>
-        `<button class="${year === activeCalendarYear ? "active" : ""}" type="button" data-calendar-year="${year}" style="--tab-index: ${index + 1}">${year}</button>`,
+      (year, index) => renderYearButton(year, index),
     )
     .join("");
+  const mobileYearButtons = mobileYears.map((year, index) => renderYearButton(year, index)).join("");
 
   calendarYears.classList.toggle("is-open", calendarYearsOpen);
-  calendarYears.innerHTML = `${menuButton}<div class="calendar-year-items">${yearButtons}</div>`;
+  calendarYears.innerHTML = `${menuButton}<div class="calendar-year-items">${yearButtons}</div><div class="calendar-mobile-year-items">${mobileYearButtons}</div>`;
+  scrollActiveCalendarYearIntoView();
+}
+
+function isMobileCalendarLayout() {
+  return window.matchMedia("(max-width: 760px)").matches;
+}
+
+function scrollActiveCalendarYearIntoView() {
+  if (!isMobileCalendarLayout() || !calendarYears) return;
+  const scroller = calendarYears.querySelector(".calendar-mobile-year-items");
+  const activeButton = scroller?.querySelector(`[data-calendar-year="${activeCalendarYear}"]`);
+  if (!scroller || !activeButton) return;
+
+  const targetLeft = activeButton.offsetLeft - (scroller.clientWidth - activeButton.offsetWidth) / 2;
+  scroller.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
 }
 
 function renderCalendarInfoToggles() {
@@ -2201,6 +2229,8 @@ function renderYearCalendar() {
   calendarTitle.textContent = activeCalendarYear;
   renderCalendarInfoToggles();
   renderCalendarPastMonthsToggle(hiddenPastMonthCount);
+  const shouldAnimateProgress = calendarProgressAnimatedYear !== activeCalendarYear;
+  calendarProgressAnimatedYear = activeCalendarYear;
   calendarSummary.innerHTML = `
     <div class="calendar-progress" title="截至今天&#10;今年已完整走过 ${yearProgress.elapsedDays} 天&#10;还剩 ${yearProgress.remainingDays} 天">
       <div>
@@ -2208,7 +2238,7 @@ function renderYearCalendar() {
         <strong>${yearProgress.label}</strong>
       </div>
       <div class="calendar-progress-track" aria-label="年度进度 ${yearProgress.label}">
-        <span style="--year-progress: ${yearProgress.percent.toFixed(2)}%"></span>
+        <span class="${shouldAnimateProgress ? "" : "is-static"}" style="--year-progress: ${yearProgress.percent.toFixed(2)}%"></span>
       </div>
     </div>
   `;
@@ -2240,7 +2270,7 @@ function renderYearCalendar() {
                 : "";
         const expandedNames = getCalendarExpandedNames(dayData);
         return `
-          <button class="calendar-day ${isPast ? "is-past" : ""} ${date.getDay() === 0 || date.getDay() === 6 ? "is-weekend" : ""} ${records.length ? `has-record level-${level}` : ""} ${hasEmojiBurst ? "has-calendar-surprise" : ""} ${hasCompletedFestival ? "is-festival-completed" : ""} ${dayData.hasHoliday ? "has-holiday" : ""} ${dayData.hasSolarTerm ? "has-solar-term" : ""} ${calendarLunarNamesOpen ? "is-lunar-mode" : ""} ${expandedNames.length ? "has-expanded-note" : ""} ${dayData.isDayOff ? "is-day-off" : ""} ${dayData.isAdjustedWorkday ? "is-adjusted-workday" : ""} ${dateKey === todayKey ? "is-today" : ""} ${dateKey === activeCalendarDate ? "is-selected" : ""}" type="button" data-calendar-date="${dateKey}" data-tooltip="${escapeHtml(dayTitle)}" aria-label="${dayTitle.replace(/\n/g, " ")}">
+          <button class="calendar-day ${isPast ? "is-past" : ""} ${date.getDay() === 0 ? "is-sunday" : ""} ${date.getDay() === 0 || date.getDay() === 6 ? "is-weekend" : ""} ${records.length ? `has-record level-${level}` : ""} ${hasEmojiBurst ? "has-calendar-surprise" : ""} ${hasCompletedFestival ? "is-festival-completed" : ""} ${dayData.hasHoliday ? "has-holiday" : ""} ${dayData.hasSolarTerm ? "has-solar-term" : ""} ${calendarLunarNamesOpen ? "is-lunar-mode" : ""} ${expandedNames.length ? "has-expanded-note" : ""} ${dayData.isDayOff ? "is-day-off" : ""} ${dayData.isAdjustedWorkday ? "is-adjusted-workday" : ""} ${dateKey === todayKey ? "is-today" : ""} ${dateKey === activeCalendarDate ? "is-selected" : ""}" type="button" data-calendar-date="${dateKey}" data-tooltip="${escapeHtml(dayTitle)}" aria-label="${dayTitle.replace(/\n/g, " ")}">
             <span>${getCalendarWeekday(date)}</span>
             <strong>${day}</strong>
             <i class="calendar-date-marks ${markerClass}" aria-hidden="true"></i>
@@ -2269,7 +2299,7 @@ function renderYearCalendar() {
     "beforeend",
     `
       <p>本年记录了 ${recordedDays} 天，总记录数 ${totalRecords} 条。</p>
-      <p>${hasOfficialHolidayArrangement ? "法定休假来源国务院办公厅节假日安排通知。" : "法定休假以已公布数据为准，未公布年份待更新。"}</p>
+      <p class="calendar-holiday-source">${hasOfficialHolidayArrangement ? "法定休假来源国务院办公厅节假日安排通知。" : "法定休假以已公布数据为准，未公布年份待更新。"}</p>
     `,
   );
 }
@@ -3117,10 +3147,37 @@ function setMobileMenu(open) {
   topNav?.classList.remove("is-hidden");
 }
 
+function jumpCalendarToTodayInstant() {
+  const today = getBeijingToday();
+  const todayKey = formatCalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+  activeCalendarYear = today.getFullYear();
+  activeCalendarDate = todayKey;
+  calendarPastMonthsOpen = true;
+  renderCalendarYears();
+  renderYearCalendar();
+  setActiveView("calendar");
+  setViewHash("calendar");
+  window.requestAnimationFrame(() => {
+    scrollActiveCalendarYearIntoView();
+    const todayButton = yearCalendar?.querySelector(`[data-calendar-date="${todayKey}"]`);
+    const monthSection = todayButton?.closest(".calendar-month");
+    monthSection?.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+    todayButton?.closest(".calendar-days")?.scrollTo({
+      left: Math.max(0, todayButton.offsetLeft - 16),
+      behavior: "auto",
+    });
+  });
+}
+
 document.addEventListener("click", (event) => {
   const link = event.target.closest("[data-view]");
   if (!link) return;
   event.preventDefault();
+  if (link.classList.contains("brand-home") && isMobileCalendarLayout()) {
+    jumpCalendarToTodayInstant();
+    setMobileMenu(false);
+    return;
+  }
   const targetView = normalizeView(link.dataset.view);
   if (targetView === "articles") {
     activeArticleId = "";
