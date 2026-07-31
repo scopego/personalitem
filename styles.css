@@ -5061,7 +5061,7 @@ html[data-theme="dark"] .rating {
     --section-top-offset: 0.85rem;
     --page-top-offset: calc(var(--header-height) + 0.9rem);
     --mobile-nav-gap: 1rem;
-    --mobile-calendar-month-size: 20px;
+    --mobile-calendar-month-size: 18px;
     --mobile-calendar-date-size: 18px;
     --mobile-calendar-note-size: 12px;
     --mobile-calendar-weekday-size: 12px;
@@ -5517,11 +5517,12 @@ html[data-theme="dark"] .rating {
     display: flex;
     align-items: center;
     box-sizing: border-box;
+    gap: 1rem;
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-padding-inline: 40%;
+    scroll-padding-inline: calc((100% - ((100% - 4rem) / 5)) / 2);
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
@@ -5531,18 +5532,18 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-mobile-year-items button {
-    flex: 0 0 20%;
-    min-width: 20%;
+    flex: 0 0 calc((100% - 4rem) / 5);
+    min-width: calc((100% - 4rem) / 5);
     scroll-snap-align: center;
     color: var(--muted);
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.35;
     padding: 0;
     text-align: center;
   }
 
   .calendar-mobile-year-items button[data-decade-start="true"]:not(:first-child) {
-    margin-left: 0.5rem;
+    margin-left: 0;
   }
 
   .calendar-mobile-year-items button.active {
@@ -5559,6 +5560,10 @@ html[data-theme="dark"] .rating {
     grid-row: 3;
     width: 100%;
     margin: 0;
+    font-size: 12px;
+  }
+
+  .calendar-summary p {
     font-size: 12px;
   }
 
@@ -5809,6 +5814,16 @@ html[data-theme="dark"] .rating {
 
   .calendar-day {
     min-height: 4.3rem;
+  }
+}
+
+@media (max-width: 402px) {
+  .mobile-menu {
+    width: min(12rem, calc(100vw - (var(--page-gutter) * 2) - 6rem));
+  }
+
+  .media-search {
+    width: min(43vw, 9.4rem);
   }
 }
 
