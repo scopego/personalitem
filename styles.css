@@ -5210,7 +5210,7 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu a {
-    font-size: 14px;
+    font-size: 18px;
     padding: 0.35rem 0.08rem;
   }
 
@@ -5220,7 +5220,7 @@ html[data-theme="dark"] .rating {
 
   .brand .brand-title::after {
     content: "此时此刻";
-    font-size: 1.18rem;
+    font-size: 18px;
     letter-spacing: 0.03em;
   }
 
@@ -5461,6 +5461,8 @@ html[data-theme="dark"] .rating {
     grid-template-columns: 1fr;
     gap: 0.72rem;
     margin-bottom: 1.55rem;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .calendar-head h2 {
@@ -5510,6 +5512,8 @@ html[data-theme="dark"] .rating {
     grid-column: 1;
     grid-row: 1;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 2.05rem;
   }
 
@@ -5520,6 +5524,7 @@ html[data-theme="dark"] .rating {
     gap: 1rem;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-padding-inline: calc((100% - ((100% - 4rem) / 5)) / 2);
@@ -5559,6 +5564,8 @@ html[data-theme="dark"] .rating {
     grid-column: 1;
     grid-row: 3;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     margin: 0;
     font-size: 12px;
   }
@@ -5574,9 +5581,15 @@ html[data-theme="dark"] .rating {
   .calendar-progress {
     gap: 0.55rem;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .calendar-progress > div:first-child {
+    font-size: 12px;
+  }
+
+  .calendar-progress span {
     font-size: 12px;
   }
 
@@ -5587,6 +5600,8 @@ html[data-theme="dark"] .rating {
   .calendar-month {
     width: 100%;
     max-width: 100%;
+    content-visibility: auto;
+    contain-intrinsic-size: 8rem;
     overflow: visible;
     overscroll-behavior-x: contain;
     padding-bottom: 0.3rem;
@@ -5599,13 +5614,14 @@ html[data-theme="dark"] .rating {
 
   .calendar-days {
     width: 100%;
+    max-width: 100%;
     min-width: 0;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-tap-highlight-color: transparent;
-    grid-template-columns: repeat(31, calc((100vw - (var(--page-gutter) * 2)) / 7));
+    grid-template-columns: repeat(31, calc(100% / 7));
     gap: 0;
   }
 
@@ -5614,10 +5630,16 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-day {
-    align-items: flex-start;
+    align-items: center;
     min-height: 4.3rem;
     pointer-events: none;
     scroll-snap-align: none;
+  }
+
+  .calendar-day.has-record::before,
+  .calendar-day.has-calendar-surprise::before {
+    content: none;
+    display: none;
   }
 
   .calendar-day:first-child,
@@ -5769,6 +5791,45 @@ html[data-theme="dark"] .rating {
     filter: brightness(1.02);
     transform: none;
   }
+
+  .calendar-info-toggle:hover,
+  .calendar-info-toggle:focus-visible {
+    background: transparent;
+    color: var(--accent);
+  }
+
+  .calendar-info-toggle:hover span,
+  .calendar-info-toggle:focus-visible span {
+    opacity: 0.72;
+  }
+
+  .calendar-info-toggle.active,
+  .calendar-info-toggle.active:hover,
+  .calendar-info-toggle.active:focus-visible {
+    background: var(--accent-soft);
+    color: var(--accent-700);
+  }
+
+  .calendar-info-toggle.active span,
+  .calendar-info-toggle.active:hover span,
+  .calendar-info-toggle.active:focus-visible span {
+    opacity: 1;
+  }
+
+  .calendar-past-months-toggle:hover,
+  .calendar-past-months-toggle:focus-visible {
+    border-color: var(--color-accent-border);
+    background: transparent;
+    color: var(--accent);
+  }
+
+  .calendar-past-months-toggle.active,
+  .calendar-past-months-toggle.active:hover,
+  .calendar-past-months-toggle.active:focus-visible {
+    border-color: var(--color-accent-focus);
+    background: var(--accent-soft);
+    color: var(--accent-700);
+  }
 }
 
 @media (max-width: 430px) {
@@ -5801,7 +5862,7 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu a {
-    font-size: 13.5px;
+    font-size: 18px;
   }
 
   .media-search {
@@ -5833,7 +5894,7 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu a {
-    font-size: 13px;
+    font-size: 18px;
   }
 
   .post-card-link {
@@ -5868,7 +5929,7 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu a {
-    font-size: 12.5px;
+    font-size: 18px;
   }
 
   .color-mode-toggle,
