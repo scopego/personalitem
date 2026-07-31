@@ -2027,7 +2027,7 @@ function renderCalendarYears() {
 
   calendarYears.classList.toggle("is-open", calendarYearsOpen);
   calendarYears.innerHTML = `${menuButton}<div class="calendar-year-items">${yearButtons}</div><div class="calendar-mobile-year-items">${mobileYearButtons}</div>`;
-  scrollActiveCalendarYearIntoView();
+  requestAnimationFrame(scrollActiveCalendarYearIntoView);
 }
 
 function isMobileCalendarLayout() {
@@ -2040,7 +2040,7 @@ function scrollActiveCalendarYearIntoView() {
   const activeButton = scroller?.querySelector(`[data-calendar-year="${activeCalendarYear}"]`);
   if (!scroller || !activeButton) return;
 
-  const targetLeft = activeButton.offsetLeft - (scroller.clientWidth - activeButton.offsetWidth) / 2;
+  const targetLeft = activeButton.offsetLeft + activeButton.offsetWidth / 2 - scroller.clientWidth / 2;
   scroller.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
 }
 
@@ -3673,6 +3673,10 @@ whyQuestion?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-why-question-next]");
   if (!button) return;
   renderWhyQuestion(true);
+});
+
+window.addEventListener("resize", () => {
+  requestAnimationFrame(scrollActiveCalendarYearIntoView);
 });
 
 async function initApp() {

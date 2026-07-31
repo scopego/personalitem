@@ -5516,10 +5516,12 @@ html[data-theme="dark"] .rating {
   .calendar-mobile-year-items {
     display: flex;
     align-items: center;
+    box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
-    scroll-padding-inline: 0;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 40%;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
@@ -5531,16 +5533,16 @@ html[data-theme="dark"] .rating {
   .calendar-mobile-year-items button {
     flex: 0 0 20%;
     min-width: 20%;
-    scroll-snap-align: start;
+    scroll-snap-align: center;
     color: var(--muted);
     font-size: 15px;
     line-height: 1.35;
     padding: 0;
-    text-align: left;
+    text-align: center;
   }
 
   .calendar-mobile-year-items button[data-decade-start="true"]:not(:first-child) {
-    margin-left: 1.25rem;
+    margin-left: 0.5rem;
   }
 
   .calendar-mobile-year-items button.active {
@@ -5767,7 +5769,6 @@ html[data-theme="dark"] .rating {
 @media (max-width: 430px) {
   :root {
     --header-height: 3.65rem;
-    --page-gutter: 0.92rem;
     --mobile-nav-gap: 1rem;
   }
 
@@ -5842,10 +5843,6 @@ html[data-theme="dark"] .rating {
 }
 
 @media (max-width: 375px) {
-  :root {
-    --page-gutter: 0.82rem;
-  }
-
   .brand strong {
     font-size: 1.24rem;
   }
