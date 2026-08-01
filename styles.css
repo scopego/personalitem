@@ -5637,6 +5637,10 @@ html[data-theme="dark"] .rating {
     line-height: 1.25;
   }
 
+  .calendar-month {
+    gap: 8px;
+  }
+
   .calendar-days {
     width: 100%;
     max-width: 100%;
