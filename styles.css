@@ -5638,7 +5638,7 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-month {
-    gap: 8px;
+    gap: 12px;
   }
 
   .calendar-days {
