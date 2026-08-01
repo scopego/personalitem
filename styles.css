@@ -5541,11 +5541,20 @@ html[data-theme="dark"] .rating {
     flex: 0 0 calc((100% - 4rem) / 5);
     min-width: calc((100% - 4rem) / 5);
     scroll-snap-align: center;
+    scroll-snap-stop: always;
     color: var(--muted);
     font-size: 18px;
     line-height: 1.35;
+    opacity: var(--picker-opacity, 0.62);
     padding: 0;
     text-align: center;
+    transform: scale(var(--picker-scale, 0.96));
+    transform-origin: center;
+    transition:
+      color 160ms ease,
+      opacity 120ms ease-out,
+      transform 120ms ease-out;
+    will-change: opacity, transform;
   }
 
   .calendar-mobile-year-items button[data-decade-start="true"]:not(:first-child) {
@@ -5555,6 +5564,7 @@ html[data-theme="dark"] .rating {
   .calendar-mobile-year-items button.active {
     color: var(--accent);
     font-weight: 650;
+    opacity: max(var(--picker-opacity, 1), 0.82);
   }
 
   .calendar-year-items::-webkit-scrollbar {
@@ -5633,8 +5643,15 @@ html[data-theme="dark"] .rating {
   .calendar-day {
     align-items: center;
     min-height: 4.3rem;
+    opacity: var(--picker-opacity, 1);
     pointer-events: none;
     scroll-snap-align: none;
+    transform: scale(var(--picker-scale, 1));
+    transform-origin: top center;
+    transition:
+      opacity 120ms ease-out,
+      transform 120ms ease-out;
+    will-change: opacity, transform;
   }
 
   .calendar-day.has-record::before,
@@ -5646,6 +5663,7 @@ html[data-theme="dark"] .rating {
   .calendar-day:first-child,
   .calendar-day.is-sunday {
     scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .calendar-day strong {

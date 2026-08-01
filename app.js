@@ -527,6 +527,8 @@ let navPinnedOpen = false;
 let mobileMenuCloseTimer = 0;
 let calendarProgressAnimatedYear = null;
 let asideState = "closed";
+const mobilePickerFrames = new WeakMap();
+const mobilePickerTimers = new WeakMap();
 
 const sidebarModulesByPage = {
   about: ["randomQuestion", "siteVersion", "contact"],
@@ -2027,6 +2029,7 @@ function renderCalendarYears() {
 
   calendarYears.classList.toggle("is-open", calendarYearsOpen);
   calendarYears.innerHTML = `${menuButton}<div class="calendar-year-items">${yearButtons}</div><div class="calendar-mobile-year-items">${mobileYearButtons}</div>`;
+  setupCalendarYearPicker();
   requestAnimationFrame(scrollActiveCalendarYearIntoView);
 }
 
@@ -2042,6 +2045,101 @@ function scrollActiveCalendarYearIntoView() {
 
   const targetLeft = activeButton.offsetLeft + activeButton.offsetWidth / 2 - scroller.clientWidth / 2;
   scroller.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
+  requestAnimationFrame(() => updateMobilePickerFeedback(scroller, "[data-calendar-year]", {
+    minOpacity: 0.36,
+    minScale: 0.9,
+  }));
+}
+
+function getClosestPickerItem(scroller, selector) {
+  const items = [...scroller.querySelectorAll(selector)];
+  if (!items.length) return null;
+  const scrollerRect = scroller.getBoundingClientRect();
+  const center = scrollerRect.left + scrollerRect.width / 2;
+  return items.reduce((closest, item) => {
+    const rect = item.getBoundingClientRect();
+    const distance = Math.abs(rect.left + rect.width / 2 - center);
+    return !closest || distance < closest.distance ? { item, distance } : closest;
+  }, null)?.item || null;
+}
+
+function updateMobilePickerFeedback(scroller, selector, options = {}) {
+  if (!isMobileCalendarLayout() || !scroller) return;
+  const items = [...scroller.querySelectorAll(selector)];
+  if (!items.length) return;
+
+  const scrollerRect = scroller.getBoundingClientRect();
+  const center = scrollerRect.left + scrollerRect.width / 2;
+  const maxDistance = Math.max(scrollerRect.width / 2, 1);
+  const minOpacity = options.minOpacity ?? 0.72;
+  const minScale = options.minScale ?? 0.98;
+
+  items.forEach((item) => {
+    const rect = item.getBoundingClientRect();
+    const itemCenter = rect.left + rect.width / 2;
+    const distance = Math.min(Math.abs(itemCenter - center) / maxDistance, 1);
+    const strength = 1 - distance;
+    const opacity = minOpacity + (1 - minOpacity) * strength;
+    const scale = minScale + (1 - minScale) * strength;
+    item.style.setProperty("--picker-opacity", opacity.toFixed(3));
+    item.style.setProperty("--picker-scale", scale.toFixed(3));
+  });
+}
+
+function scheduleMobilePickerFeedback(scroller, selector, options) {
+  if (mobilePickerFrames.get(scroller)) return;
+  const frame = requestAnimationFrame(() => {
+    mobilePickerFrames.delete(scroller);
+    updateMobilePickerFeedback(scroller, selector, options);
+  });
+  mobilePickerFrames.set(scroller, frame);
+}
+
+function setupMobilePickerScroller(scroller, selector, options = {}, onSettle) {
+  if (!scroller || scroller.dataset.pickerReady === "true") return;
+  scroller.dataset.pickerReady = "true";
+  scroller.classList.add("is-picker-feedback");
+  requestAnimationFrame(() => updateMobilePickerFeedback(scroller, selector, options));
+
+  scroller.addEventListener("scroll", () => {
+    scheduleMobilePickerFeedback(scroller, selector, options);
+    const previousTimer = mobilePickerTimers.get(scroller);
+    if (previousTimer) window.clearTimeout(previousTimer);
+    if (onSettle) {
+      const timer = window.setTimeout(() => {
+        updateMobilePickerFeedback(scroller, selector, options);
+        onSettle(scroller);
+      }, 140);
+      mobilePickerTimers.set(scroller, timer);
+    }
+  }, { passive: true });
+}
+
+function setupCalendarYearPicker() {
+  if (!calendarYears) return;
+  const scroller = calendarYears.querySelector(".calendar-mobile-year-items");
+  setupMobilePickerScroller(scroller, "[data-calendar-year]", {
+    minOpacity: 0.36,
+    minScale: 0.9,
+  }, (targetScroller) => {
+    const closest = getClosestPickerItem(targetScroller, "[data-calendar-year]");
+    const year = Number(closest?.dataset.calendarYear);
+    if (!year || year === activeCalendarYear) return;
+    activeCalendarYear = year;
+    activeCalendarDate = "";
+    renderCalendarYears();
+    renderYearCalendar();
+  });
+}
+
+function setupCalendarDayPickers() {
+  if (!yearCalendar) return;
+  yearCalendar.querySelectorAll(".calendar-days").forEach((scroller) => {
+    setupMobilePickerScroller(scroller, ".calendar-day", {
+      minOpacity: 0.76,
+      minScale: 0.985,
+    });
+  });
 }
 
 function renderCalendarInfoToggles() {
@@ -2302,6 +2400,7 @@ function renderYearCalendar() {
       <p class="calendar-holiday-source">${hasOfficialHolidayArrangement ? "法定休假来源国务院办公厅节假日安排通知。" : "法定休假以已公布数据为准，未公布年份待更新。"}</p>
     `,
   );
+  setupCalendarDayPickers();
 }
 
 function formatMomentDateLabel(date) {
