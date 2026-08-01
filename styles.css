@@ -2567,13 +2567,13 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 }
 
 .calendar-day.has-expanded-note .calendar-date-name {
-  margin-top: -0.18rem;
+  margin-top: 0;
   opacity: 0.86;
 }
 
 .calendar-day.is-lunar-mode .calendar-date-name {
   color: var(--muted);
-  margin-top: -0.18rem;
+  margin-top: 0;
   opacity: 0.78;
 }
 
