@@ -2147,13 +2147,13 @@ function renderCalendarInfoToggles() {
 
   calendarInfoToggles.innerHTML = `
     <button class="calendar-info-toggle is-holiday ${calendarHolidayNamesOpen ? "active" : ""}" type="button" data-calendar-info-toggle="holiday" aria-label="${calendarHolidayNamesOpen ? "收起法定节假日和重要农历日" : "展开法定节假日和重要农历日"}" aria-pressed="${calendarHolidayNamesOpen}">
-      <span aria-hidden="true"></span>
+      <span>节假日</span>
     </button>
     <button class="calendar-info-toggle is-solar-term ${calendarSolarTermNamesOpen ? "active" : ""}" type="button" data-calendar-info-toggle="solar" aria-label="${calendarSolarTermNamesOpen ? "收起二十四节气" : "展开二十四节气"}" aria-pressed="${calendarSolarTermNamesOpen}">
-      <span aria-hidden="true"></span>
+      <span>节气</span>
     </button>
     <button class="calendar-info-toggle is-lunar ${calendarLunarNamesOpen ? "active" : ""}" type="button" data-calendar-info-toggle="lunar" aria-label="${calendarLunarNamesOpen ? "收起农历" : "展开农历"}" aria-pressed="${calendarLunarNamesOpen}">
-      <span aria-hidden="true"></span>
+      <span>农历</span>
     </button>
   `;
 }
