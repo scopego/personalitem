@@ -5620,6 +5620,7 @@ html[data-theme="dark"] .rating {
   .calendar-day {
     align-items: center;
     gap: 0;
+    justify-content: flex-start;
     min-height: 4.3rem;
     opacity: var(--picker-opacity, 1);
     pointer-events: none;
