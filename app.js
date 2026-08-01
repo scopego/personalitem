@@ -3030,6 +3030,17 @@ function scrollElementToVisualCenter(element, behavior = "smooth") {
   });
 }
 
+function scrollElementBelowNav(element, offset = 16) {
+  if (!element) return;
+  const rect = element.getBoundingClientRect();
+  const navHeight = topNav?.getBoundingClientRect().height || 0;
+  const targetTop = window.scrollY + rect.top - navHeight - offset;
+  window.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior: "auto",
+  });
+}
+
 function canToggleAside(view = activeView) {
   return toggleableSidebarViews.has(normalizeView(view));
 }
@@ -3152,7 +3163,7 @@ function jumpCalendarToTodayInstant() {
   const todayKey = formatCalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
   activeCalendarYear = today.getFullYear();
   activeCalendarDate = todayKey;
-  calendarPastMonthsOpen = true;
+  calendarPastMonthsOpen = false;
   renderCalendarYears();
   renderYearCalendar();
   setActiveView("calendar");
@@ -3161,7 +3172,7 @@ function jumpCalendarToTodayInstant() {
     scrollActiveCalendarYearIntoView();
     const todayButton = yearCalendar?.querySelector(`[data-calendar-date="${todayKey}"]`);
     const monthSection = todayButton?.closest(".calendar-month");
-    monthSection?.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+    scrollElementBelowNav(monthSection);
     todayButton?.closest(".calendar-days")?.scrollTo({
       left: Math.max(0, todayButton.offsetLeft - 16),
       behavior: "auto",
