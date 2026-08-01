@@ -5467,7 +5467,7 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-section {
-    padding-top: 1.1rem;
+    padding-top: 0.22rem;
   }
 
   .calendar-head h2 {
@@ -5480,7 +5480,7 @@ html[data-theme="dark"] .rating {
     align-items: center;
     flex-wrap: nowrap;
     gap: 1.1rem;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     width: 100%;
   }
 
@@ -5521,7 +5521,7 @@ html[data-theme="dark"] .rating {
     max-width: 100%;
     min-width: 0;
     min-height: 2.05rem;
-    margin-bottom: 32px;
+    margin-bottom: 18px;
   }
 
   .calendar-mobile-year-items {
@@ -5629,7 +5629,7 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-day-detail {
-    margin-top: 32px;
+    margin-top: 20px;
   }
 
   .calendar-month h3 {
