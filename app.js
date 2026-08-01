@@ -873,6 +873,7 @@ function getSiteCalendarRecords() {
       title: post.title,
       summary: post.summary,
       view: "articles",
+      target: post.id,
     });
   });
 
@@ -883,18 +884,21 @@ function getSiteCalendarRecords() {
       title: moment.text ? moment.text.split("\n")[0] : "一组照片",
       summary: moment.location || "生活片刻",
       view: "moments",
+      target: moment.id,
     });
   });
 
   mediaLogs.forEach((group) => {
     const [year, month] = group.month.split(".");
     group.items.forEach((item, index) => {
+      const mediaDate = item.date || `${year}-${month}-${String(index + 1).padStart(2, "0")}`;
       records.push({
-        date: `${year}-${month}-${String(index + 1).padStart(2, "0")}`,
+        date: mediaDate,
         type: "影集",
         title: item.title,
         summary: item.creator,
         view: "media",
+        target: getMediaNoteKey(group, item),
       });
     });
   });
@@ -1018,6 +1022,58 @@ function getCalendarRecordMap(year = activeCalendarYear) {
     });
 
   return map;
+}
+
+function getCalendarRecordGroups(records) {
+  const metaByView = {
+    moments: { icon: "📷", label: "片刻", order: 1 },
+    media: { icon: "🎬", label: "影集", order: 2 },
+    articles: { icon: "📝", label: "文章", order: 3 },
+  };
+  const groups = new Map();
+
+  records.forEach((record) => {
+    const meta = metaByView[record.view] || { icon: "", label: record.type || "记录", order: 99 };
+    const group = groups.get(record.view) || {
+      view: record.view,
+      icon: meta.icon,
+      label: meta.label,
+      order: meta.order,
+      count: 0,
+      target: record.target || "",
+    };
+    group.count += 1;
+    if (!group.target && record.target) group.target = record.target;
+    groups.set(record.view, group);
+  });
+
+  return [...groups.values()].sort((a, b) => a.order - b.order);
+}
+
+function renderCalendarRecordSummary(dayData) {
+  if (!dayData.records.length) {
+    return `<p class="calendar-record-summary is-empty">安静地过了一天，没有留下记录</p>`;
+  }
+
+  const groups = getCalendarRecordGroups(dayData.records);
+  return `
+    <p class="calendar-record-summary">
+      <span>当天留下 ${dayData.records.length} 条记录</span>
+      <span aria-hidden="true">[</span>
+      <span class="calendar-record-links">
+        ${groups
+          .map(
+            (group) => `
+              <a href="#${group.view}" data-view="${group.view}" data-calendar-target="${escapeHtml(group.target)}" data-calendar-target-date="${dayData.date}">
+                ${group.icon} ${group.label} × ${group.count}
+              </a>
+            `,
+          )
+          .join("")}
+      </span>
+      <span aria-hidden="true">]</span>
+    </p>
+  `;
 }
 
 function getBeijingToday() {
@@ -1675,7 +1731,7 @@ function renderPosts() {
   postList.innerHTML = filteredPosts
     .map(
       (post) => `
-        <article class="post-card">
+        <article class="post-card" data-post-id="${post.id}" data-post-date="${post.date}">
           <button class="post-card-link" type="button" data-article-id="${post.id}">
             <h3>${escapeHtml(post.title)}</h3>
             <p class="post-summary">${escapeHtml(post.summary)}</p>
@@ -1932,7 +1988,7 @@ function renderMoments() {
             ${group.items
               .map((moment) => {
                 return `
-                  <article class="moment-item" data-moment-id="${moment.id}">
+                  <article class="moment-item" data-moment-id="${moment.id}" data-moment-date="${moment.date}">
                     ${renderMomentDateTime(moment)}
                     <div class="moment-body">
                       ${moment.text ? `<p class="moment-text">${escapeHtml(moment.text).replace(/\n/g, "<br>")}</p>` : ""}
@@ -2240,7 +2296,6 @@ function renderCalendarFestivalCompletion(dateKey, name) {
 function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
   const hasDateNotes = dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday;
-  if (!hasDateNotes && !dayData.records.length) return "";
 
   return `
     <div class="calendar-day-detail">
@@ -2289,26 +2344,7 @@ function renderCalendarDayDetail(dayData) {
           `
           : ""
       }
-      ${
-        dayData.records.length
-          ? `
-            <p>当天留下 ${dayData.records.length} 条记录</p>
-            <div>
-              ${dayData.records
-                .map(
-                  (record) => `
-                    <a href="#${record.view}" data-view="${record.view}">
-                      <span>${record.type}</span>
-                      <strong>${escapeHtml(record.title)}</strong>
-                      <em>${escapeHtml(record.summary || "")}</em>
-                    </a>
-                  `,
-                )
-                .join("")}
-            </div>
-          `
-          : ""
-      }
+      ${renderCalendarRecordSummary(dayData)}
     </div>
   `;
 }
@@ -2635,7 +2671,7 @@ function renderMediaShelf() {
                         const mediaDate = item.date || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
                         const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
                         return `
-                        <article class="media-card" data-note-key="${escapeHtml(noteKey)}">
+                        <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
                           <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
                             <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
                             <button class="media-note-button ${noteCount ? "has-note" : ""}" type="button" data-note-key="${escapeHtml(noteKey)}" aria-label="查看或给${item.title}留言" title="查看留言">
@@ -3140,6 +3176,31 @@ function scrollElementBelowNav(element, offset = 16) {
   });
 }
 
+function getSafeSelectorValue(value) {
+  const stringValue = String(value || "");
+  if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(stringValue);
+  return stringValue.replace(/["\\]/g, "\\$&");
+}
+
+function scrollToCalendarRecordTarget(view, target, dateKey) {
+  const escapedTarget = getSafeSelectorValue(target);
+  const escapedDate = getSafeSelectorValue(dateKey);
+  const selectors = {
+    articles: target ? `[data-post-id="${escapedTarget}"]` : `[data-post-date="${escapedDate}"]`,
+    moments: target ? `[data-moment-id="${escapedTarget}"]` : `[data-moment-date="${escapedDate}"]`,
+    media: target ? `[data-note-key="${escapedTarget}"]` : `[data-media-date="${escapedDate}"]`,
+  };
+  const selector = selectors[view];
+  const targetElement = selector ? document.querySelector(selector) : null;
+
+  if (targetElement) {
+    scrollElementToVisualCenter(targetElement, "auto");
+    return;
+  }
+
+  scrollViewToTop();
+}
+
 function canToggleAside(view = activeView) {
   return toggleableSidebarViews.has(normalizeView(view));
 }
@@ -3291,11 +3352,35 @@ document.addEventListener("click", (event) => {
   const targetView = normalizeView(link.dataset.view);
   if (targetView === "articles") {
     activeArticleId = "";
+    if (link.dataset.calendarTargetDate) {
+      searchTerm = "";
+      activeTag = "";
+      syncArticleSearchInputs();
+      renderTags();
+    }
     renderPosts();
+  }
+  if (targetView === "media" && link.dataset.calendarTargetDate) {
+    activeMediaType = "全部";
+    mediaSearchTerm = "";
+    if (mediaSearchInput) mediaSearchInput.value = "";
+    renderMediaTypeTabs();
+    renderMediaShelf();
+  }
+  if (targetView === "moments" && link.dataset.calendarTargetDate) {
+    activeMomentView = "record";
+    momentViewMenuOpen = false;
+    renderMomentView();
   }
   setActiveView(targetView);
   setViewHash(targetView);
   setMobileMenu(false);
+  if (link.dataset.calendarTargetDate) {
+    window.requestAnimationFrame(() => {
+      scrollToCalendarRecordTarget(targetView, link.dataset.calendarTarget, link.dataset.calendarTargetDate);
+    });
+    return;
+  }
   scrollViewToTop();
 });
 
@@ -3494,7 +3579,6 @@ yearCalendar?.addEventListener("click", (event) => {
   const dateKey = dayButton.dataset.calendarDate;
   const records = getCalendarRecordMap().get(dateKey) || [];
   const dayData = getCalendarDateData(dateKey, records);
-  const hasDateNotes = dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday;
   const hasEmojiBurst = getCalendarFestivalEmojis(dayData).length > 0;
   const now = Date.now();
   const isRapidEmojiClick = hasEmojiBurst &&
@@ -3507,7 +3591,7 @@ yearCalendar?.addEventListener("click", (event) => {
   }
   if (isRapidEmojiClick) return;
 
-  activeCalendarDate = activeCalendarDate === dateKey || (!records.length && !hasDateNotes) ? "" : dateKey;
+  activeCalendarDate = activeCalendarDate === dateKey ? "" : dateKey;
   renderYearCalendar();
 });
 
