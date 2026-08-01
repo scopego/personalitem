@@ -5625,11 +5625,11 @@ html[data-theme="dark"] .rating {
   }
 
   .year-calendar {
-    gap: 36px;
+    gap: 28px;
   }
 
   .calendar-day-detail {
-    margin-top: 20px;
+    margin-top: 12px;
   }
 
   .calendar-month h3 {
@@ -5656,6 +5656,7 @@ html[data-theme="dark"] .rating {
 
   .calendar-day {
     align-items: center;
+    gap: 0;
     min-height: 4.3rem;
     opacity: var(--picker-opacity, 1);
     pointer-events: none;
@@ -5684,6 +5685,7 @@ html[data-theme="dark"] .rating {
     width: 32px;
     height: 32px;
     font-size: var(--mobile-calendar-date-size);
+    margin-bottom: 6px;
     pointer-events: auto;
   }
 
@@ -5696,16 +5698,34 @@ html[data-theme="dark"] .rating {
 
   .calendar-day span {
     font-size: var(--mobile-calendar-weekday-size);
+    margin-bottom: 6px;
   }
 
   .calendar-date-name {
     width: 32px;
     font-size: var(--mobile-calendar-note-size);
+    margin-top: 0;
   }
 
   .calendar-date-marks {
-    flex-basis: 0.8rem;
-    height: 0.8rem;
+    flex-basis: 0.72rem;
+    height: 0.72rem;
+  }
+
+  .calendar-day.is-lunar-mode .calendar-date-name {
+    margin-top: 0;
+  }
+
+  .calendar-day.is-weekend.has-record strong,
+  .calendar-day.is-weekend.is-today strong,
+  .calendar-day.is-weekend.is-selected strong {
+    background: rgba(26, 26, 26, 0.07);
+  }
+
+  html[data-theme="dark"] .calendar-day.is-weekend.has-record strong,
+  html[data-theme="dark"] .calendar-day.is-weekend.is-today strong,
+  html[data-theme="dark"] .calendar-day.is-weekend.is-selected strong {
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .calendar-year-items {
