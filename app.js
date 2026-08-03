@@ -1649,6 +1649,10 @@ function renderPostContent(blocks = []) {
       if (block.type === "quote") {
         return `<blockquote>${escapeHtml(block.text)}</blockquote>`;
       }
+      if (block.type === "code") {
+        const language = block.language ? ` data-language="${escapeHtml(block.language)}"` : "";
+        return `<pre class="article-code"${language}><code>${escapeHtml(block.text)}</code></pre>`;
+      }
       if (block.type === "list") {
         return `<ul>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
       }
