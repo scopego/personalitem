@@ -1050,9 +1050,24 @@ function getCalendarRecordGroups(records) {
   return [...groups.values()].sort((a, b) => a.order - b.order);
 }
 
+function getCalendarEmptyRecordMessage(dateKey) {
+  const todayDate = getBeijingToday();
+  const todayKey = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, "0")}-${String(todayDate.getDate()).padStart(2, "0")}`;
+
+  if (dateKey > todayKey) {
+    return "Good Morning, and in case I don't see you, good afternoon, good evening, and good night!";
+  }
+
+  if (dateKey === todayKey) {
+    return "今天还没有留下记录。";
+  }
+
+  return "安静地过了一天，没有留下任何记录。";
+}
+
 function renderCalendarRecordSummary(dayData) {
   if (!dayData.records.length) {
-    return `<p class="calendar-record-summary is-empty">安静地过了一天，没有留下记录</p>`;
+    return `<p class="calendar-record-summary is-empty">${getCalendarEmptyRecordMessage(dayData.date)}</p>`;
   }
 
   const groups = getCalendarRecordGroups(dayData.records);
