@@ -474,6 +474,7 @@ let activeCalendarDate = "";
 let calendarHolidayNamesOpen = false;
 let calendarSolarTermNamesOpen = false;
 let calendarLunarNamesOpen = false;
+let calendarScheduleOpen = false;
 let calendarPastMonthsOpen = false;
 let lastCalendarEmojiClick = { dateKey: "", timestamp: 0 };
 let calendarFestivalStatuses = getCalendarFestivalStatuses();
@@ -529,6 +530,7 @@ let calendarProgressAnimatedYear = null;
 let asideState = "closed";
 const mobilePickerFrames = new WeakMap();
 const mobilePickerTimers = new WeakMap();
+const mobilePickerSelections = new WeakMap();
 
 const sidebarModulesByPage = {
   about: ["randomQuestion", "siteVersion", "contact"],
@@ -891,7 +893,7 @@ function getSiteCalendarRecords() {
   mediaLogs.forEach((group) => {
     const [year, month] = group.month.split(".");
     group.items.forEach((item, index) => {
-      const mediaDate = item.date || `${year}-${month}-${String(index + 1).padStart(2, "0")}`;
+      const mediaDate = getDateOnly(item.date) || `${year}-${month}-${String(index + 1).padStart(2, "0")}`;
       records.push({
         date: mediaDate,
         type: "影集",
@@ -948,7 +950,7 @@ function getArchiveEntries() {
     const [year, month] = group.month.split(".");
     return group.items.map((item, index) => ({
       id: `media-${group.month}-${item.type}-${item.title}`,
-      date: `${year}-${month}-${String(index + 1).padStart(2, "0")}`,
+      date: getDateOnly(item.date) || `${year}-${month}-${String(index + 1).padStart(2, "0")}`,
       time: "21:30",
       type: "影集",
       title: `《${item.title}》`,
@@ -1026,7 +1028,7 @@ function getCalendarRecordMap(year = activeCalendarYear) {
 
 function getCalendarRecordGroups(records) {
   const metaByView = {
-    moments: { icon: "📷", label: "片刻", order: 1 },
+    moments: { icon: "📸", label: "片刻", order: 1 },
     media: { icon: "🎬", label: "影集", order: 2 },
     articles: { icon: "📝", label: "文章", order: 3 },
   };
@@ -1080,7 +1082,7 @@ function renderCalendarRecordSummary(dayData) {
           .map(
             (group) => `
               <a href="#${group.view}" data-view="${group.view}" data-calendar-target="${escapeHtml(group.target)}" data-calendar-target-date="${dayData.date}">
-                ${group.icon} ${group.label} × ${group.count}
+                <span class="sr-only">${group.label}</span>${group.icon} × ${group.count}
               </a>
             `,
           )
@@ -1201,6 +1203,10 @@ const solarTermCache = new Map();
 function formatDateKeyFromDate(date) {
   const values = Object.fromEntries(dateKeyFormatter.formatToParts(date).map((part) => [part.type, part.value]));
   return `${values.year}-${values.month}-${values.day}`;
+}
+
+function getDateOnly(value) {
+  return String(value || "").split("T")[0];
 }
 
 function getDateFromKey(dateKey) {
@@ -2170,38 +2176,53 @@ function scheduleMobilePickerFeedback(scroller, selector, options) {
   mobilePickerFrames.set(scroller, frame);
 }
 
+function triggerMobilePickerHaptic() {
+  if (!isMobileCalendarLayout() || typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  navigator.vibrate(8);
+}
+
 function setupMobilePickerScroller(scroller, selector, options = {}, onSettle) {
   if (!scroller || scroller.dataset.pickerReady === "true") return;
   scroller.dataset.pickerReady = "true";
   scroller.classList.add("is-picker-feedback");
   requestAnimationFrame(() => updateMobilePickerFeedback(scroller, selector, options));
 
+  const settlePicker = () => {
+    updateMobilePickerFeedback(scroller, selector, options);
+    if (onSettle) onSettle(scroller);
+  };
+
   scroller.addEventListener("scroll", () => {
     scheduleMobilePickerFeedback(scroller, selector, options);
     const previousTimer = mobilePickerTimers.get(scroller);
     if (previousTimer) window.clearTimeout(previousTimer);
     if (onSettle) {
-      const timer = window.setTimeout(() => {
-        updateMobilePickerFeedback(scroller, selector, options);
-        onSettle(scroller);
-      }, 140);
+      const timer = window.setTimeout(settlePicker, options.settleDelay ?? 80);
       mobilePickerTimers.set(scroller, timer);
     }
   }, { passive: true });
+
+  if ("onscrollend" in window) {
+    scroller.addEventListener("scrollend", settlePicker, { passive: true });
+  }
 }
 
 function setupCalendarYearPicker() {
   if (!calendarYears) return;
   const scroller = calendarYears.querySelector(".calendar-mobile-year-items");
   setupMobilePickerScroller(scroller, "[data-calendar-year]", {
-    minOpacity: 0.36,
-    minScale: 0.9,
+    minOpacity: 0.18,
+    minScale: 0.78,
+    settleDelay: 60,
   }, (targetScroller) => {
     const closest = getClosestPickerItem(targetScroller, "[data-calendar-year]");
     const year = Number(closest?.dataset.calendarYear);
     if (!year || year === activeCalendarYear) return;
+    if (mobilePickerSelections.get(targetScroller) === year) return;
+    mobilePickerSelections.set(targetScroller, year);
     activeCalendarYear = year;
     activeCalendarDate = "";
+    triggerMobilePickerHaptic();
     renderCalendarYears();
     renderYearCalendar();
   });
@@ -2229,6 +2250,9 @@ function renderCalendarInfoToggles() {
     </button>
     <button class="calendar-info-toggle is-lunar ${calendarLunarNamesOpen ? "active" : ""}" type="button" data-calendar-info-toggle="lunar" aria-label="${calendarLunarNamesOpen ? "收起农历" : "展开农历"}" aria-pressed="${calendarLunarNamesOpen}">
       <span>农历</span>
+    </button>
+    <button class="calendar-info-toggle is-schedule ${calendarScheduleOpen ? "active" : ""}" type="button" data-calendar-info-toggle="schedule" aria-label="${calendarScheduleOpen ? "收起排班" : "展开排班"}" aria-pressed="${calendarScheduleOpen}">
+      <span>排班</span>
     </button>
   `;
 }
@@ -2687,7 +2711,7 @@ function renderMediaShelf() {
                       (item, itemIndex) => {
                         const noteKey = getMediaNoteKey(group, item);
                         const noteCount = getMediaNoteCount(mediaNotes, noteKey);
-                        const mediaDate = item.date || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
+                        const mediaDate = getDateOnly(item.date) || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
                         const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
                         return `
                         <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
@@ -3575,6 +3599,10 @@ calendarInfoToggles?.addEventListener("click", (event) => {
     }
   }
 
+  if (toggle.dataset.calendarInfoToggle === "schedule") {
+    calendarScheduleOpen = !calendarScheduleOpen;
+  }
+
   renderYearCalendar();
 });
 
@@ -3596,6 +3624,7 @@ yearCalendar?.addEventListener("click", (event) => {
   const dayButton = event.target.closest("[data-calendar-date]");
   if (!dayButton) return;
   const dateKey = dayButton.dataset.calendarDate;
+  const dayTopBeforeRender = dayButton.getBoundingClientRect().top;
   const records = getCalendarRecordMap().get(dateKey) || [];
   const dayData = getCalendarDateData(dateKey, records);
   const hasEmojiBurst = getCalendarFestivalEmojis(dayData).length > 0;
@@ -3612,6 +3641,13 @@ yearCalendar?.addEventListener("click", (event) => {
 
   activeCalendarDate = activeCalendarDate === dateKey ? "" : dateKey;
   renderYearCalendar();
+  requestAnimationFrame(() => {
+    const renderedDay = yearCalendar?.querySelector(`[data-calendar-date="${dateKey}"]`);
+    if (!renderedDay) return;
+    const dayTopAfterRender = renderedDay.getBoundingClientRect().top;
+    const delta = dayTopAfterRender - dayTopBeforeRender;
+    if (Math.abs(delta) > 0.5) window.scrollBy({ top: delta, behavior: "auto" });
+  });
 });
 
 archiveFilter?.addEventListener("click", (event) => {

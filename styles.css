@@ -188,6 +188,16 @@ body {
     color 180ms ease;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 html.theme-changing *,
 html.theme-changing *::before,
 html.theme-changing *::after {
@@ -2504,7 +2514,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 
 .calendar-day.is-past:not(.has-record):not(.is-today) strong {
   color: var(--muted);
-  opacity: 0.58;
+  opacity: 0.42;
 }
 
 .calendar-day.has-record {
@@ -5047,8 +5057,8 @@ html[data-theme="dark"] .rating {
     --grid-gap: 1.5rem;
     --section-top-offset: 0.85rem;
     --page-top-offset: calc(var(--header-height) + 0.9rem);
-    --mobile-nav-gap: 1rem;
-    --mobile-calendar-month-size: 18px;
+    --mobile-nav-gap: 0.75rem;
+    --mobile-calendar-month-size: 17px;
     --mobile-calendar-date-size: 18px;
     --mobile-calendar-note-size: 12px;
     --mobile-calendar-weekday-size: 12px;
@@ -5156,7 +5166,7 @@ html[data-theme="dark"] .rating {
   .mobile-menu {
     position: absolute;
     top: 0;
-    right: calc(var(--page-gutter) + 3.25rem);
+    right: calc(var(--page-gutter) + 3rem);
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -5466,20 +5476,26 @@ html[data-theme="dark"] .rating {
     grid-row: 2;
     align-items: center;
     flex-wrap: nowrap;
-    gap: 1.1rem;
+    justify-content: space-between;
+    gap: 0.75rem;
     margin-bottom: 18px;
     width: 100%;
   }
 
   .calendar-info-toggles {
-    flex: 0 0 auto;
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.42rem;
+    min-width: 0;
     transform: none;
   }
 
   .calendar-info-toggle {
+    justify-content: center;
     min-height: 1.8rem;
     font-size: 12px;
-    padding: 0.22rem 0.62rem;
+    padding: 0.22rem 0.42rem;
   }
 
   .calendar-past-months-toggle {
@@ -5544,15 +5560,16 @@ html[data-theme="dark"] .rating {
     color: var(--muted);
     font-size: 18px;
     line-height: 1.35;
-    opacity: var(--picker-opacity, 0.62);
+    opacity: var(--picker-opacity, 0.48);
     padding: 0;
     text-align: center;
     transform: scale(var(--picker-scale, 0.96));
     transform-origin: center;
     transition:
       color 160ms ease,
-      opacity 120ms ease-out,
-      transform 120ms ease-out;
+      font-size 120ms ease-out,
+      opacity 90ms ease-out,
+      transform 90ms ease-out;
     will-change: opacity, transform;
   }
 
@@ -5561,9 +5578,10 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-mobile-year-items button.active {
-    color: var(--accent);
+    color: var(--accent-700);
+    font-size: 20px;
     font-weight: 650;
-    opacity: max(var(--picker-opacity, 1), 0.82);
+    opacity: 1;
   }
 
   .calendar-year-items::-webkit-scrollbar {
@@ -5887,7 +5905,7 @@ html[data-theme="dark"] .rating {
 @media (max-width: 430px) {
   :root {
     --header-height: 3.65rem;
-    --mobile-nav-gap: 1rem;
+    --mobile-nav-gap: 0.75rem;
   }
 
   .top-nav-inner {
@@ -5909,7 +5927,7 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu {
-    right: calc(var(--page-gutter) + 3.2rem);
+    right: calc(var(--page-gutter) + 2.95rem);
     width: min(12.2rem, calc(100vw - (var(--page-gutter) * 2) - 6.1rem));
   }
 
@@ -5976,7 +5994,7 @@ html[data-theme="dark"] .rating {
   }
 
   .mobile-menu {
-    right: calc(var(--page-gutter) + 3rem);
+    right: calc(var(--page-gutter) + 2.8rem);
     width: min(11.6rem, calc(100vw - (var(--page-gutter) * 2) - 5.8rem));
   }
 

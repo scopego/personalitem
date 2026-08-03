@@ -197,7 +197,7 @@ function mapMedia(page) {
   const title = getTitle(page, "Title");
   if (!title) return null;
 
-  const finishedAt = getDateStart(page, "FinishedAt") || getDateStart(page, "SortDate") || "";
+  const finishedAt = normalizeDateOnly(getDateStart(page, "FinishedAt") || getDateStart(page, "SortDate") || "");
   const cover = getFiles(page, "Cover")[0];
   const localPoster = getLocalAssetPath(getRichText(page, "LocalPoster"), "assets/images/movies");
 
@@ -341,6 +341,10 @@ function getUrl(page, name) {
 
 function getDateStart(page, name) {
   return getProperty(page, name)?.date?.start || "";
+}
+
+function normalizeDateOnly(value) {
+  return String(value || "").split("T")[0];
 }
 
 function getFiles(page, name) {
