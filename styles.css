@@ -5750,12 +5750,15 @@ html[data-theme="dark"] .rating {
     margin-left: 0;
   }
 
-  .calendar-mobile-year-items button.is-picker-center,
-  .calendar-mobile-year-items button.active {
+  .calendar-mobile-year-items button.is-picker-center {
     color: var(--accent-700);
     font-size: 20px;
     font-weight: 650;
     opacity: 1;
+  }
+
+  .calendar-mobile-year-items button.active:not(.is-picker-center) {
+    color: var(--muted);
   }
 
   .calendar-year-items::-webkit-scrollbar {

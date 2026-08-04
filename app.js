@@ -471,8 +471,8 @@ let momentTouchStartX = 0;
 let activeCalendarYear = getDefaultCalendarYear();
 let calendarYearsOpen = false;
 let activeCalendarDate = "";
-let calendarHolidayNamesOpen = false;
-let calendarSolarTermNamesOpen = false;
+let calendarHolidayNamesOpen = true;
+let calendarSolarTermNamesOpen = true;
 let calendarLunarNamesOpen = false;
 let calendarScheduleOpen = false;
 let calendarPastMonthsOpen = false;
@@ -2206,6 +2206,21 @@ function updateMobilePickerFeedback(scroller, selector, options = {}) {
   }
 }
 
+function getClosestPickerItem(scroller, selector) {
+  if (!scroller) return null;
+  const items = [...scroller.querySelectorAll(selector)];
+  if (!items.length) return null;
+
+  const scrollerRect = scroller.getBoundingClientRect();
+  const center = scrollerRect.left + scrollerRect.width / 2;
+
+  return items.reduce((closest, item) => {
+    const rect = item.getBoundingClientRect();
+    const distance = Math.abs(rect.left + rect.width / 2 - center);
+    return !closest || distance < closest.distance ? { item, distance } : closest;
+  }, null)?.item || null;
+}
+
 function scheduleMobilePickerFeedback(scroller, selector, options) {
   if (mobilePickerFrames.get(scroller)) return;
   const frame = requestAnimationFrame(() => {
@@ -2248,7 +2263,14 @@ function setupCalendarYearPicker() {
     minOpacity: 0.18,
     minScale: 0.78,
     centerClass: "is-picker-center",
-    settleDelay: 60,
+    settleDelay: 120,
+  }, (yearScroller) => {
+    const centeredYear = Number(getClosestPickerItem(yearScroller, "[data-calendar-year]")?.dataset.calendarYear);
+    if (!centeredYear || centeredYear === activeCalendarYear) return;
+    activeCalendarYear = centeredYear;
+    activeCalendarDate = "";
+    renderCalendarYears();
+    renderYearCalendar();
   });
 }
 
