@@ -2514,12 +2514,14 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .year-calendar {
   display: grid;
   gap: clamp(2.55rem, 4.3vw, 3.75rem);
+  overflow-anchor: none;
 }
 
 .calendar-month {
   display: grid;
   gap: 0.9rem;
   min-width: 0;
+  overflow-anchor: none;
 }
 
 .calendar-month h3 {
@@ -2787,6 +2789,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   margin-top: 0.6rem;
   padding-top: 1rem;
   border-top: 1px solid var(--color-divider);
+  overflow-anchor: none;
 }
 
 .calendar-day-detail p {
@@ -5626,8 +5629,8 @@ html[data-theme="dark"] .rating {
     min-width: 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-padding-inline: calc((100% - ((100% - 4rem) / 5)) / 2);
-    padding-inline: calc((100% - ((100% - 4rem) / 5)) / 2);
+    scroll-padding-inline: calc((100% - 4rem) / 2);
+    padding-inline: calc((100% - 4rem) / 2);
     scrollbar-width: none;
   }
 
@@ -5636,8 +5639,9 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-mobile-year-items button {
-    flex: 0 0 calc((100% - 4rem) / 5);
-    min-width: calc((100% - 4rem) / 5);
+    flex: 0 0 4rem;
+    width: 4rem;
+    min-width: 4rem;
     color: var(--muted);
     font-size: 18px;
     line-height: 1.35;

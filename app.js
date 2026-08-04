@@ -3628,6 +3628,7 @@ yearCalendar?.addEventListener("click", (event) => {
   if (!dayButton) return;
   const dateKey = dayButton.dataset.calendarDate;
   const dayTopBeforeRender = dayButton.getBoundingClientRect().top;
+  dayButton.blur();
   const records = getCalendarRecordMap().get(dateKey) || [];
   const dayData = getCalendarDateData(dateKey, records);
   const hasEmojiBurst = getCalendarFestivalEmojis(dayData).length > 0;
@@ -3644,12 +3645,16 @@ yearCalendar?.addEventListener("click", (event) => {
 
   activeCalendarDate = activeCalendarDate === dateKey ? "" : dateKey;
   renderYearCalendar();
-  requestAnimationFrame(() => {
+  const keepDayInPlace = () => {
     const renderedDay = yearCalendar?.querySelector(`[data-calendar-date="${dateKey}"]`);
     if (!renderedDay) return;
     const dayTopAfterRender = renderedDay.getBoundingClientRect().top;
     const delta = dayTopAfterRender - dayTopBeforeRender;
     if (Math.abs(delta) > 0.5) window.scrollBy({ top: delta, behavior: "auto" });
+  };
+  requestAnimationFrame(() => {
+    keepDayInPlace();
+    requestAnimationFrame(keepDayInPlace);
   });
 });
 
