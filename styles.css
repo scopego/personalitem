@@ -2908,6 +2908,94 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   color: var(--muted);
 }
 
+.calendar-record-summary.is-truman {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.24rem 0.42rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background:
+    linear-gradient(
+      120deg,
+      color-mix(in srgb, var(--truman-start, var(--accent-soft)) 72%, transparent),
+      color-mix(in srgb, var(--truman-end, var(--accent-soft)) 52%, transparent)
+    );
+  color: var(--truman-text, var(--muted));
+  background-size: 180% 180%;
+  animation: truman-greeting-drift 18s ease-in-out infinite;
+}
+
+.calendar-record-summary.is-truman.is-morning {
+  --truman-start: #fff1bb;
+  --truman-end: #ffd77a;
+  --truman-text: #8c6622;
+}
+
+.calendar-record-summary.is-truman.is-day {
+  --truman-start: #f8fbff;
+  --truman-end: #dcecff;
+  --truman-text: #46637e;
+}
+
+.calendar-record-summary.is-truman.is-evening {
+  --truman-start: #ffe1c2;
+  --truman-end: #f2a35f;
+  --truman-text: #97512f;
+}
+
+.calendar-record-summary.is-truman.is-night {
+  --truman-start: #282114;
+  --truman-end: #8c6b2f;
+  --truman-text: #d6bd78;
+}
+
+html[data-theme="dark"] .calendar-record-summary.is-truman {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+html[data-theme="dark"] .calendar-record-summary.is-truman.is-morning {
+  --truman-start: #3a2d15;
+  --truman-end: #8f6b29;
+  --truman-text: #e1c579;
+}
+
+html[data-theme="dark"] .calendar-record-summary.is-truman.is-day {
+  --truman-start: #172331;
+  --truman-end: #345471;
+  --truman-text: #bdd5ea;
+}
+
+html[data-theme="dark"] .calendar-record-summary.is-truman.is-evening {
+  --truman-start: #352017;
+  --truman-end: #8f4e2a;
+  --truman-text: #e5ad7a;
+}
+
+html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
+  --truman-start: #14110c;
+  --truman-end: #6f5728;
+  --truman-text: #dcc37b;
+}
+
+@keyframes truman-greeting-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-record-summary.is-truman {
+    animation: none;
+  }
+}
+
 .calendar-record-links {
   display: inline-flex;
   flex-wrap: wrap;

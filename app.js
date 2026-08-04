@@ -1071,9 +1071,25 @@ function getCalendarEmptyRecordMessage(dateKey) {
   return "安静地过了一天，没有留下任何记录。";
 }
 
+function isFutureCalendarDate(dateKey) {
+  const todayDate = getBeijingToday();
+  const todayKey = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, "0")}-${String(todayDate.getDate()).padStart(2, "0")}`;
+  return dateKey > todayKey;
+}
+
+function getTrumanGreetingTone() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour <= 10) return "morning";
+  if (hour >= 11 && hour <= 16) return "day";
+  if (hour >= 17 && hour <= 18) return "evening";
+  return "night";
+}
+
 function renderCalendarRecordSummary(dayData) {
   if (!dayData.records.length) {
-    return `<p class="calendar-record-summary is-empty">${getCalendarEmptyRecordMessage(dayData.date)}</p>`;
+    const isTrumanGreeting = isFutureCalendarDate(dayData.date);
+    const trumanTone = isTrumanGreeting ? ` is-${getTrumanGreetingTone()}` : "";
+    return `<p class="calendar-record-summary is-empty${isTrumanGreeting ? " is-truman" : ""}${trumanTone}">${getCalendarEmptyRecordMessage(dayData.date)}</p>`;
   }
 
   const groups = getCalendarRecordGroups(dayData.records);
