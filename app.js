@@ -2206,6 +2206,13 @@ function updateMobilePickerFeedback(scroller, selector, options = {}) {
   }
 }
 
+function syncCalendarYearButtonState() {
+  if (!calendarYears) return;
+  calendarYears.querySelectorAll("[data-calendar-year]").forEach((button) => {
+    button.classList.toggle("active", Number(button.dataset.calendarYear) === activeCalendarYear);
+  });
+}
+
 function getClosestPickerItem(scroller, selector) {
   if (!scroller) return null;
   const items = [...scroller.querySelectorAll(selector)];
@@ -2265,11 +2272,17 @@ function setupCalendarYearPicker() {
     centerClass: "is-picker-center",
     settleDelay: 120,
   }, (yearScroller) => {
+    if (!document.body.contains(yearScroller)) return;
     const centeredYear = Number(getClosestPickerItem(yearScroller, "[data-calendar-year]")?.dataset.calendarYear);
     if (!centeredYear || centeredYear === activeCalendarYear) return;
     activeCalendarYear = centeredYear;
     activeCalendarDate = "";
-    renderCalendarYears();
+    syncCalendarYearButtonState();
+    updateMobilePickerFeedback(yearScroller, "[data-calendar-year]", {
+      minOpacity: 0.18,
+      minScale: 0.78,
+      centerClass: "is-picker-center",
+    });
     renderYearCalendar();
   });
 }
@@ -3688,6 +3701,8 @@ yearCalendar?.addEventListener("click", (event) => {
 
   activeCalendarDate = activeCalendarDate === dateKey ? "" : dateKey;
   renderYearCalendar();
+  if (isMobileCalendarLayout()) return;
+
   const keepDayInPlace = () => {
     const renderedDay = yearCalendar?.querySelector(`[data-calendar-date="${dateKey}"]`);
     if (!renderedDay) return;
