@@ -125,8 +125,8 @@ let posts = [
 const whyQuestions = window.whyQuestionsData || [];
 const CALENDAR_START_YEAR = 2026;
 const CALENDAR_END_YEAR = 2036;
-const CALENDAR_MOBILE_START_YEAR = 2000;
-const CALENDAR_MOBILE_END_YEAR = 2039;
+const CALENDAR_MOBILE_START_YEAR = 1900;
+const CALENDAR_MOBILE_END_YEAR = 2100;
 const siteConfig = {
   version: "V1.0",
   startedAt: "2026-07-02",
@@ -530,7 +530,6 @@ let calendarProgressAnimatedYear = null;
 let asideState = "closed";
 const mobilePickerFrames = new WeakMap();
 const mobilePickerTimers = new WeakMap();
-const mobilePickerSelections = new WeakMap();
 
 const sidebarModulesByPage = {
   about: ["randomQuestion", "siteVersion", "contact"],
@@ -1650,17 +1649,34 @@ function renderPostContent(blocks = []) {
   return blocks
     .map((block) => {
       if (block.type === "heading") {
-        return `<h2>${escapeHtml(block.text)}</h2>`;
+        const level = Math.min(Math.max(Number(block.level) || 2, 2), 3);
+        return `<h${level}>${escapeHtml(block.text)}</h${level}>`;
       }
       if (block.type === "quote") {
         return `<blockquote>${escapeHtml(block.text)}</blockquote>`;
+      }
+      if (block.type === "callout") {
+        return `<aside class="article-callout">${block.icon ? `<span aria-hidden="true">${escapeHtml(block.icon)}</span>` : ""}<p>${escapeHtml(block.text)}</p></aside>`;
       }
       if (block.type === "code") {
         const language = block.language ? ` data-language="${escapeHtml(block.language)}"` : "";
         return `<pre class="article-code"${language}><code>${escapeHtml(block.text)}</code></pre>`;
       }
       if (block.type === "list") {
-        return `<ul>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+        const tag = block.ordered ? "ol" : "ul";
+        return `<${tag}>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</${tag}>`;
+      }
+      if (block.type === "todo") {
+        return `<p class="article-todo ${block.checked ? "is-checked" : ""}"><span aria-hidden="true">${block.checked ? "✓" : ""}</span>${escapeHtml(block.text)}</p>`;
+      }
+      if (block.type === "divider") {
+        return `<hr class="article-divider" />`;
+      }
+      if (block.type === "image") {
+        return `<figure class="article-figure"><img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt || block.caption || "")}" loading="lazy" />${block.caption ? `<figcaption>${escapeHtml(block.caption)}</figcaption>` : ""}</figure>`;
+      }
+      if (block.type === "link") {
+        return `<p><a class="article-block-link" href="${escapeHtml(block.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(block.text || block.url)}</a></p>`;
       }
       return `<p>${escapeHtml(block.text)}</p>`;
     })
@@ -2127,21 +2143,10 @@ function scrollActiveCalendarYearIntoView() {
   const targetLeft = activeButton.offsetLeft + activeButton.offsetWidth / 2 - scroller.clientWidth / 2;
   scroller.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
   requestAnimationFrame(() => updateMobilePickerFeedback(scroller, "[data-calendar-year]", {
-    minOpacity: 0.36,
-    minScale: 0.9,
+    minOpacity: 0.18,
+    minScale: 0.78,
+    centerClass: "is-picker-center",
   }));
-}
-
-function getClosestPickerItem(scroller, selector) {
-  const items = [...scroller.querySelectorAll(selector)];
-  if (!items.length) return null;
-  const scrollerRect = scroller.getBoundingClientRect();
-  const center = scrollerRect.left + scrollerRect.width / 2;
-  return items.reduce((closest, item) => {
-    const rect = item.getBoundingClientRect();
-    const distance = Math.abs(rect.left + rect.width / 2 - center);
-    return !closest || distance < closest.distance ? { item, distance } : closest;
-  }, null)?.item || null;
 }
 
 function updateMobilePickerFeedback(scroller, selector, options = {}) {
@@ -2154,17 +2159,30 @@ function updateMobilePickerFeedback(scroller, selector, options = {}) {
   const maxDistance = Math.max(scrollerRect.width / 2, 1);
   const minOpacity = options.minOpacity ?? 0.72;
   const minScale = options.minScale ?? 0.98;
+  let closestItem = null;
+  let closestDistance = Infinity;
 
   items.forEach((item) => {
     const rect = item.getBoundingClientRect();
     const itemCenter = rect.left + rect.width / 2;
-    const distance = Math.min(Math.abs(itemCenter - center) / maxDistance, 1);
+    const rawDistance = Math.abs(itemCenter - center);
+    const distance = Math.min(rawDistance / maxDistance, 1);
     const strength = 1 - distance;
     const opacity = minOpacity + (1 - minOpacity) * strength;
     const scale = minScale + (1 - minScale) * strength;
     item.style.setProperty("--picker-opacity", opacity.toFixed(3));
     item.style.setProperty("--picker-scale", scale.toFixed(3));
+    if (rawDistance < closestDistance) {
+      closestDistance = rawDistance;
+      closestItem = item;
+    }
   });
+
+  if (options.centerClass) {
+    items.forEach((item) => {
+      item.classList.toggle(options.centerClass, item === closestItem);
+    });
+  }
 }
 
 function scheduleMobilePickerFeedback(scroller, selector, options) {
@@ -2174,11 +2192,6 @@ function scheduleMobilePickerFeedback(scroller, selector, options) {
     updateMobilePickerFeedback(scroller, selector, options);
   });
   mobilePickerFrames.set(scroller, frame);
-}
-
-function triggerMobilePickerHaptic() {
-  if (!isMobileCalendarLayout() || typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
-  navigator.vibrate(8);
 }
 
 function setupMobilePickerScroller(scroller, selector, options = {}, onSettle) {
@@ -2213,18 +2226,8 @@ function setupCalendarYearPicker() {
   setupMobilePickerScroller(scroller, "[data-calendar-year]", {
     minOpacity: 0.18,
     minScale: 0.78,
+    centerClass: "is-picker-center",
     settleDelay: 60,
-  }, (targetScroller) => {
-    const closest = getClosestPickerItem(targetScroller, "[data-calendar-year]");
-    const year = Number(closest?.dataset.calendarYear);
-    if (!year || year === activeCalendarYear) return;
-    if (mobilePickerSelections.get(targetScroller) === year) return;
-    mobilePickerSelections.set(targetScroller, year);
-    activeCalendarYear = year;
-    activeCalendarDate = "";
-    triggerMobilePickerHaptic();
-    renderCalendarYears();
-    renderYearCalendar();
   });
 }
 
