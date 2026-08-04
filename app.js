@@ -484,6 +484,7 @@ let archiveYearsOpen = false;
 let activeArchiveYear = "";
 let archiveSearchTerm = "";
 const archiveTypes = ["全部", "文章", "影集", "片刻"];
+const LIVE_CONTENT_TIMEOUT_MS = 8000;
 
 if ("scrollRestoration" in window.history) {
   window.history.scrollRestoration = "manual";
@@ -624,16 +625,19 @@ async function loadLiveContent() {
   if (!window.fetch) return;
 
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 1800);
+  const timeoutId = window.setTimeout(() => controller.abort(), LIVE_CONTENT_TIMEOUT_MS);
 
   try {
-    const response = await fetch("/api/content", {
+    const response = await fetch(`/api/content?ts=${Date.now()}`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
       signal: controller.signal,
     });
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      console.warn("Notion content request failed:", response.status);
+      return;
+    }
 
     const content = await response.json();
     if (Array.isArray(content.articles) && content.articles.length) {
@@ -648,7 +652,8 @@ async function loadLiveContent() {
     if (content.siteConfig?.activeMomentStatus) {
       activeMomentStatusItem = content.siteConfig.activeMomentStatus;
     }
-  } catch {
+  } catch (error) {
+    console.warn("Notion content request unavailable, using local fallback data.", error);
     // Keep local fallback data when Notion is not configured or temporarily unavailable.
   } finally {
     window.clearTimeout(timeoutId);
