@@ -1071,6 +1071,13 @@ function getCalendarEmptyRecordMessage(dateKey) {
   return "安静地过了一天，没有留下任何记录。";
 }
 
+function renderTrumanGreeting() {
+  return `
+    <span class="truman-reveal-line">Good Morning, and in case I don't see you, good afternoon, good</span>
+    <span class="truman-reveal-line">evening, and good night!</span>
+  `;
+}
+
 function isFutureCalendarDate(dateKey) {
   const todayDate = getBeijingToday();
   const todayKey = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, "0")}-${String(todayDate.getDate()).padStart(2, "0")}`;
@@ -1089,7 +1096,8 @@ function renderCalendarRecordSummary(dayData) {
   if (!dayData.records.length) {
     const isTrumanGreeting = isFutureCalendarDate(dayData.date);
     const trumanTone = isTrumanGreeting ? ` is-${getTrumanGreetingTone()}` : "";
-    return `<p class="calendar-record-summary is-empty${isTrumanGreeting ? " is-truman" : ""}${trumanTone}">${getCalendarEmptyRecordMessage(dayData.date)}</p>`;
+    const content = isTrumanGreeting ? renderTrumanGreeting() : getCalendarEmptyRecordMessage(dayData.date);
+    return `<p class="calendar-record-summary is-empty${isTrumanGreeting ? " is-truman" : ""}${trumanTone}">${content}</p>`;
   }
 
   const groups = getCalendarRecordGroups(dayData.records);
