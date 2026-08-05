@@ -2316,14 +2316,16 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .calendar-title-row {
   grid-column: 1;
   grid-row: 2;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: clamp(0.75rem, 1.4vw, 1.1rem);
+  column-gap: clamp(0.75rem, 1.4vw, 1.1rem);
+  row-gap: 0.55rem;
   min-width: 0;
 }
 
 .calendar-head h2 {
+  grid-row: 1 / span 2;
   margin: 0;
   color: var(--ink);
   font-size: clamp(3.2rem, 6.2vw, 5.25rem);
@@ -2333,6 +2335,8 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 }
 
 .calendar-info-toggles {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   align-items: center;
   flex: 0 1 auto;
@@ -2401,6 +2405,8 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 }
 
 .calendar-past-months-toggle {
+  grid-column: 2;
+  grid-row: 2;
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
@@ -2937,6 +2943,18 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   color: var(--truman-text, var(--muted));
 }
 
+.truman-reveal-text {
+  display: block;
+}
+
+.truman-reveal-text:not([data-truman-ready="true"]) {
+  color: transparent;
+}
+
+.truman-measure-token {
+  color: transparent;
+}
+
 .calendar-record-summary.is-truman::before {
   position: absolute;
   z-index: -1;
@@ -2979,11 +2997,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   background-position: 100% 0;
   -webkit-background-clip: text;
   background-clip: text;
-  animation: truman-text-reveal 1.15s ease-out forwards;
-}
-
-.truman-reveal-line + .truman-reveal-line {
-  animation-delay: 0.95s;
+  animation: truman-text-reveal 1.05s ease-out forwards;
 }
 
 .calendar-record-summary.is-truman.is-morning {
@@ -3076,6 +3090,10 @@ html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
     color: var(--truman-text, var(--muted));
     background: none;
     animation: none;
+  }
+
+  .truman-measure-token {
+    color: inherit;
   }
 
   .calendar-record-summary.is-truman::before {
@@ -5737,6 +5755,7 @@ html[data-theme="dark"] .rating {
   .calendar-title-row {
     grid-column: 1;
     grid-row: 2;
+    display: flex;
     align-items: center;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -5754,6 +5773,8 @@ html[data-theme="dark"] .rating {
 
   .calendar-info-toggles {
     display: flex;
+    grid-column: auto;
+    grid-row: auto;
     flex: 0 0 auto;
     gap: 0.42rem;
     min-width: 0;
@@ -5769,6 +5790,8 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-past-months-toggle {
+    grid-column: auto;
+    grid-row: auto;
     flex: 0 0 auto;
     width: max-content;
     max-width: 100%;

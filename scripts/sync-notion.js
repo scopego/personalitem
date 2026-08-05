@@ -19,6 +19,7 @@ const config = {
   momentsSourceId: process.env.NOTION_MOMENTS_SOURCE_ID,
   mediaSourceId: process.env.NOTION_MEDIA_SOURCE_ID,
   siteConfigSourceId: process.env.NOTION_SITE_CONFIG_SOURCE_ID,
+  scheduleSourceId: process.env.NOTION_SCHEDULE_SOURCE_ID,
 };
 
 main().catch((error) => {
@@ -29,11 +30,12 @@ main().catch((error) => {
 async function main() {
   validateConfig(config);
 
-  const [articles, moments, mediaRows, siteConfigRows] = await Promise.all([
+  const [articles, moments, mediaRows, siteConfigRows, scheduleRows] = await Promise.all([
     queryDataSource(config.articlesSourceId),
     queryDataSource(config.momentsSourceId),
     queryDataSource(config.mediaSourceId),
     queryOptionalDataSource(config.siteConfigSourceId),
+    queryOptionalDataSource(config.scheduleSourceId),
   ]);
 
   const output = {
@@ -41,6 +43,7 @@ async function main() {
     moments: moments.map(mapMoment).filter(Boolean),
     media: groupMediaByMonth(mediaRows.map(mapMedia).filter(Boolean)),
     siteConfig: mapSiteConfig(siteConfigRows),
+    schedule: scheduleRows.map(mapSchedule).filter(Boolean).sort((a, b) => String(a.date).localeCompare(String(b.date))),
   };
 
   output.articles.sort((a, b) => compareDateDesc(a.date, b.date));
@@ -52,6 +55,7 @@ async function main() {
       moments: output.moments.length,
       mediaItems: output.media.reduce((count, group) => count + group.items.length, 0),
       mediaGroups: output.media.length,
+      schedule: output.schedule.length,
     }, null, 2));
     return;
   }
@@ -61,10 +65,12 @@ async function main() {
   writeJson("moments.json", output.moments);
   writeJson("media.json", output.media);
   writeJson("site-config.json", output.siteConfig);
+  writeJson("schedule.json", output.schedule);
   writeJs("articles.generated.js", "window.generatedArticlesData", output.articles);
   writeJs("moments.generated.js", "window.generatedMomentsData", output.moments);
   writeJs("media.generated.js", "window.generatedMediaData", output.media);
   writeJs("site-config.generated.js", "window.generatedSiteConfig", output.siteConfig);
+  writeJs("schedule.generated.js", "window.generatedScheduleData", output.schedule);
 
   console.log(`Synced ${output.articles.length} articles, ${output.moments.length} moments, ${output.media.reduce((count, group) => count + group.items.length, 0)} media items.`);
 }
@@ -214,6 +220,20 @@ function mapMedia(page) {
       poster: localPoster || cover?.url || "",
       rating: getNumber(page, "Rating"),
     },
+  };
+}
+
+function mapSchedule(page) {
+  const date = normalizeDateOnly(getDateStart(page, "Date") || getDateStart(page, "SortDate") || "");
+  const shift = getSelectName(page, "Shift") || getRichText(page, "Shift") || getTitle(page, "Name");
+  const visible = getCheckbox(page, "Visible");
+  if (!date || !shift || visible !== true) return null;
+
+  return {
+    id: page.id,
+    date,
+    shift,
+    note: getRichText(page, "Note"),
   };
 }
 

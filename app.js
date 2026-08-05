@@ -475,6 +475,7 @@ let calendarHolidayNamesOpen = true;
 let calendarSolarTermNamesOpen = true;
 let calendarLunarNamesOpen = false;
 let calendarScheduleOpen = false;
+let calendarSchedules = [];
 let calendarPastMonthsOpen = false;
 let lastCalendarEmojiClick = { dateKey: "", timestamp: 0 };
 let calendarFestivalStatuses = getCalendarFestivalStatuses();
@@ -648,6 +649,9 @@ async function loadLiveContent() {
     }
     if (Array.isArray(content.media) && content.media.length) {
       mediaLogs = content.media;
+    }
+    if (Array.isArray(content.schedule)) {
+      calendarSchedules = content.schedule;
     }
     if (content.siteConfig?.activeMomentStatus) {
       activeMomentStatusItem = content.siteConfig.activeMomentStatus;
@@ -912,6 +916,10 @@ function getSiteCalendarRecords() {
   return records;
 }
 
+function getCalendarScheduleItems(dateKey) {
+  return calendarSchedules.filter((item) => item.date === dateKey);
+}
+
 function getArchiveEntries() {
   const getPostContentText = (post) =>
     (post.content || [])
@@ -1071,11 +1079,53 @@ function getCalendarEmptyRecordMessage(dateKey) {
   return "安静地过了一天，没有留下任何记录。";
 }
 
+const trumanGreetingText = "Good Morning, and in case I don't see you, good afternoon, good evening, and good night!";
+
 function renderTrumanGreeting() {
-  return `
-    <span class="truman-reveal-line">Good Morning, and in case I don't see you, good afternoon, good</span>
-    <span class="truman-reveal-line">evening, and good night!</span>
-  `;
+  return `<span class="truman-reveal-text">${escapeHtml(trumanGreetingText)}</span>`;
+}
+
+function setupTrumanReveals(root = document) {
+  const targets = root.querySelectorAll(".truman-reveal-text");
+  targets.forEach((target) => {
+    const text = trumanGreetingText;
+    const currentWidth = Math.round(target.getBoundingClientRect().width);
+    if (target.dataset.trumanReady === "true" && target.dataset.trumanWidth === String(currentWidth)) return;
+
+    const tokens = text.match(/\S+\s*/g) || [text];
+    target.dataset.trumanReady = "false";
+    target.dataset.trumanWidth = String(currentWidth);
+    target.textContent = "";
+
+    const tokenNodes = tokens.map((token) => {
+      const node = document.createElement("span");
+      node.className = "truman-measure-token";
+      node.textContent = token;
+      target.appendChild(node);
+      return node;
+    });
+
+    const lines = [];
+    tokenNodes.forEach((node) => {
+      const rect = node.getBoundingClientRect();
+      const lastLine = lines[lines.length - 1];
+      if (lastLine && Math.abs(lastLine.top - rect.top) <= 2) {
+        lastLine.text += node.textContent;
+      } else {
+        lines.push({ top: rect.top, text: node.textContent });
+      }
+    });
+
+    target.textContent = "";
+    lines.forEach((line, index) => {
+      const lineNode = document.createElement("span");
+      lineNode.className = "truman-reveal-line";
+      lineNode.style.animationDelay = `${(index * 0.84).toFixed(2)}s`;
+      lineNode.textContent = line.text.trimEnd();
+      target.appendChild(lineNode);
+    });
+    target.dataset.trumanReady = "true";
+  });
 }
 
 function isFutureCalendarDate(dateKey) {
@@ -1428,12 +1478,14 @@ function getCalendarDateData(dateKey, records = []) {
   const lunar = getLunarDateInfo(dateKey);
   const solarTerm = getGeneratedSolarTerm(dateKey);
   const festivals = mergeCalendarFestivals(dateKey);
+  const schedules = getCalendarScheduleItems(dateKey);
   const hasSameSolarFestival = solarTerm && festivals.some((festival) => festival.name === solarTerm.name);
 
   return {
     date: dateKey,
     lunar,
     festivals,
+    schedules,
     solarTerm,
     isDayOff: festivals.some((festival) => festival.isDayOff),
     isAdjustedWorkday: festivals.some((festival) => festival.isAdjustedWorkday),
@@ -1468,6 +1520,9 @@ function getCalendarDateSummary(dayData) {
 
   if (dayData.isDayOff) eventLines.push("法定节假日");
   if (dayData.isAdjustedWorkday) eventLines.push("补班");
+  dayData.schedules.forEach((item) => {
+    eventLines.push(`排班：${item.shift}${item.note ? ` · ${item.note}` : ""}`);
+  });
 
   if (eventLines.length) {
     lines.push(...[...new Set(eventLines)]);
@@ -2353,18 +2408,24 @@ function getCalendarExpandedNames(dayData) {
     return label ? [label] : [];
   }
 
+  const labels = [];
   if (calendarHolidayNamesOpen && dayData.festivals.length) {
     const festival = dayData.festivals.find((item) => !item.types?.includes("adjusted-workday")) || dayData.festivals[0];
     const label = getCalendarCompactDateLabel(getCalendarFestivalDisplayName(festival));
-    return label ? [label] : [];
+    if (label) labels.push(label);
   }
 
-  if (calendarSolarTermNamesOpen && dayData.solarTerm) {
+  if (!labels.length && calendarSolarTermNamesOpen && dayData.solarTerm) {
     const label = getCalendarCompactDateLabel(dayData.solarTerm.name);
-    return label ? [label] : [];
+    if (label) labels.push(label);
   }
 
-  return [];
+  if (calendarScheduleOpen && dayData.schedules.length) {
+    const label = getCalendarCompactDateLabel(dayData.schedules[0].shift);
+    if (label && !labels.includes(label)) labels.push(label);
+  }
+
+  return labels;
 }
 
 function getCalendarDayTitle(dateKey, records) {
@@ -2405,7 +2466,7 @@ function renderCalendarFestivalCompletion(dateKey, name) {
 
 function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
-  const hasDateNotes = dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday;
+  const hasDateNotes = dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length;
 
   return `
     <div class="calendar-day-detail">
@@ -2450,6 +2511,19 @@ function renderCalendarDayDetail(dayData) {
                   `
                   : ""
               }
+              ${dayData.schedules
+                .map(
+                  (item) => `
+                    <div class="calendar-date-note-item">
+                      <div class="calendar-date-note-title">
+                        <strong>${escapeHtml(item.shift)}</strong>
+                      </div>
+                      ${item.note ? `<span>${escapeHtml(item.note)}</span>` : ""}
+                      <em>排班</em>
+                    </div>
+                  `,
+                )
+                .join("")}
             </div>
           `
           : ""
@@ -2547,6 +2621,7 @@ function renderYearCalendar() {
     `,
   );
   setupCalendarDayPickers();
+  requestAnimationFrame(() => setupTrumanReveals(yearCalendar));
 }
 
 function formatMomentDateLabel(date) {
@@ -3999,7 +4074,10 @@ whyQuestion?.addEventListener("click", (event) => {
 });
 
 window.addEventListener("resize", () => {
-  requestAnimationFrame(scrollActiveCalendarYearIntoView);
+  requestAnimationFrame(() => {
+    scrollActiveCalendarYearIntoView();
+    setupTrumanReveals(yearCalendar);
+  });
 });
 
 async function initApp() {
