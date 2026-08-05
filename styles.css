@@ -2318,6 +2318,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   grid-row: 2;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: clamp(0.75rem, 1.4vw, 1.1rem);
   min-width: 0;
 }
@@ -2334,8 +2335,19 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .calendar-info-toggles {
   display: flex;
   align-items: center;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
   gap: 0.42rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
   transform: translateY(0.08rem);
+}
+
+.calendar-info-toggles::-webkit-scrollbar {
+  display: none;
 }
 
 .calendar-info-toggle {
@@ -2391,6 +2403,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .calendar-past-months-toggle {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   gap: 0.42rem;
   min-height: 2rem;
   border: 1px solid var(--color-accent-border);
@@ -2920,8 +2933,19 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .calendar-record-summary.is-truman {
   position: relative;
   isolation: isolate;
-  color: var(--truman-text, var(--muted));
-  clip-path: inset(0 100% 0 0);
+  color: transparent;
+  background:
+    linear-gradient(
+      90deg,
+      var(--truman-text, var(--muted)) 0%,
+      var(--truman-text, var(--muted)) 38%,
+      color-mix(in srgb, var(--truman-text, var(--muted)) 36%, transparent) 48%,
+      transparent 58%
+    );
+  background-size: 280% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
   animation: truman-text-reveal 2s ease-out forwards;
 }
 
@@ -2933,17 +2957,17 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   background:
     radial-gradient(
       circle at var(--truman-light-x, 18%) 46%,
-      color-mix(in srgb, var(--truman-glow, var(--accent)) 34%, transparent) 0%,
-      color-mix(in srgb, var(--truman-glow, var(--accent)) 18%, transparent) 34%,
-      transparent 72%
+      color-mix(in srgb, var(--truman-glow, var(--accent)) 48%, transparent) 0%,
+      color-mix(in srgb, var(--truman-glow, var(--accent)) 26%, transparent) 38%,
+      transparent 76%
     ),
     linear-gradient(
       110deg,
-      color-mix(in srgb, var(--truman-start, var(--accent-soft)) 16%, transparent),
-      color-mix(in srgb, var(--truman-end, var(--accent-soft)) 11%, transparent)
+      color-mix(in srgb, var(--truman-start, var(--accent-soft)) 24%, transparent),
+      color-mix(in srgb, var(--truman-end, var(--accent-soft)) 16%, transparent)
     );
-  opacity: 0.9;
-  filter: blur(9px);
+  opacity: 1;
+  filter: blur(12px);
   transform: translate3d(-0.4rem, 0, 0) scaleX(0.82);
   transform-origin: center;
   animation: truman-light-reveal 2s ease-out forwards;
@@ -3008,37 +3032,38 @@ html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
 
 @keyframes truman-text-reveal {
   from {
-    clip-path: inset(0 100% 0 0);
+    background-position: 100% 0;
   }
 
   to {
-    clip-path: inset(0 0 0 0);
+    background-position: 0% 0;
   }
 }
 
 @keyframes truman-light-reveal {
   from {
     --truman-light-x: 8%;
-    opacity: 0.2;
-    transform: translate3d(-0.5rem, 0, 0) scaleX(0.72);
+    opacity: 0.28;
+    transform: translate3d(-0.56rem, 0, 0) scaleX(0.72);
   }
 
   to {
     --truman-light-x: 86%;
-    opacity: 0.88;
-    transform: translate3d(0, 0, 0) scaleX(1.02);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scaleX(1.08);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .calendar-record-summary.is-truman {
-    clip-path: inset(0 0 0 0);
+    color: var(--truman-text, var(--muted));
+    background: none;
     animation: none;
   }
 
   .calendar-record-summary.is-truman::before {
     animation: none;
-    opacity: 0.72;
+    opacity: 0.84;
     transform: none;
   }
 }
@@ -5696,8 +5721,8 @@ html[data-theme="dark"] .rating {
     grid-column: 1;
     grid-row: 2;
     align-items: center;
-    flex-wrap: nowrap;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 0.75rem;
     margin-bottom: 18px;
     width: 100%;
@@ -5705,7 +5730,7 @@ html[data-theme="dark"] .rating {
 
   .calendar-info-toggles {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     gap: 0.42rem;
     min-width: 0;
     overflow-x: auto;
