@@ -2342,6 +2342,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   min-height: 2rem;
   border: 1px solid var(--color-accent-border);
   border-radius: 999px;
@@ -2353,6 +2354,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   font-weight: 500;
   line-height: 1.2;
   padding: 0.28rem 0.72rem;
+  white-space: nowrap;
   transition:
     background-color 160ms ease,
     border-color 160ms ease,
@@ -2363,6 +2365,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .calendar-info-toggle span {
   display: block;
   opacity: 0.72;
+  white-space: nowrap;
   transition: opacity 160ms ease;
 }
 
@@ -2918,6 +2921,8 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   position: relative;
   isolation: isolate;
   color: var(--truman-text, var(--muted));
+  clip-path: inset(0 100% 0 0);
+  animation: truman-text-reveal 2s ease-out forwards;
 }
 
 .calendar-record-summary.is-truman::before {
@@ -2939,9 +2944,9 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
     );
   opacity: 0.9;
   filter: blur(9px);
-  transform: translate3d(0, 0, 0) scaleX(1.02);
+  transform: translate3d(-0.4rem, 0, 0) scaleX(0.82);
   transform-origin: center;
-  animation: truman-atmosphere-drift 16s ease-in-out infinite;
+  animation: truman-light-reveal 2s ease-out forwards;
   pointer-events: none;
 }
 
@@ -3001,24 +3006,40 @@ html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
   --truman-text: #dcc37b;
 }
 
-@keyframes truman-atmosphere-drift {
-  0%,
-  100% {
-    --truman-light-x: 16%;
-    opacity: 0.72;
-    transform: translate3d(-0.16rem, 0, 0) scaleX(1);
+@keyframes truman-text-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
   }
 
-  50% {
-    --truman-light-x: 84%;
-    opacity: 0.96;
-    transform: translate3d(0.16rem, -0.04rem, 0) scaleX(1.035);
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes truman-light-reveal {
+  from {
+    --truman-light-x: 8%;
+    opacity: 0.2;
+    transform: translate3d(-0.5rem, 0, 0) scaleX(0.72);
+  }
+
+  to {
+    --truman-light-x: 86%;
+    opacity: 0.88;
+    transform: translate3d(0, 0, 0) scaleX(1.02);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .calendar-record-summary.is-truman {
+    clip-path: inset(0 0 0 0);
+    animation: none;
+  }
+
   .calendar-record-summary.is-truman::before {
     animation: none;
+    opacity: 0.72;
+    transform: none;
   }
 }
 
@@ -5683,12 +5704,18 @@ html[data-theme="dark"] .rating {
   }
 
   .calendar-info-toggles {
-    display: grid;
+    display: flex;
     flex: 1 1 auto;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.42rem;
     min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
     transform: none;
+  }
+
+  .calendar-info-toggles::-webkit-scrollbar {
+    display: none;
   }
 
   .calendar-info-toggle {
