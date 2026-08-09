@@ -2147,8 +2147,8 @@ function renderMomentPhotos(moment) {
 }
 
 function renderMomentMeta(moment) {
-  const location = moment.location ? `在${escapeHtml(moment.location)}` : "没有地点";
-  const mobileLocation = moment.location ? `<span class="moment-meta-mobile">在${escapeHtml(moment.location)}</span>` : "";
+  const location = moment.location ? `在 ${escapeHtml(moment.location)}` : "没有地点";
+  const mobileLocation = moment.location ? `<span class="moment-meta-mobile">在 ${escapeHtml(moment.location)}</span>` : "";
 
   return `
     <div class="moment-meta">
@@ -2268,14 +2268,18 @@ function renderMoments() {
           <div class="moment-list">
             ${group.items
               .map((moment) => {
+                const momentText = moment.text || "";
+                const fallbackText = !momentText && moment.photos.length ? `此刻只留下了${moment.photos.length}张图片。` : "";
                 return `
                   <article class="moment-item" data-moment-id="${moment.id}" data-moment-date="${moment.date}">
                     ${renderMomentDateTime(moment)}
                     ${renderMomentMobileInfo(moment)}
                     <div class="moment-body">
-                      ${moment.text ? `
-                        <p class="moment-text">${escapeHtml(moment.text).replace(/\n/g, "<br>")}</p>
-                        <button class="moment-text-toggle" type="button" data-moment-text-toggle aria-expanded="false" hidden>展开</button>
+                      ${momentText || fallbackText ? `
+                        <div class="moment-text-wrap">
+                          <p class="moment-text${fallbackText ? " moment-text-fallback" : ""}">${escapeHtml(momentText || fallbackText).replace(/\n/g, "<br>")}</p>
+                          <button class="moment-text-toggle" type="button" data-moment-text-toggle aria-expanded="false" hidden>展开</button>
+                        </div>
                       ` : ""}
                       ${renderMomentPhotos(moment)}
                       ${renderMomentMeta(moment)}
@@ -2346,11 +2350,13 @@ function setupMomentTextClamp() {
 
   const isMobile = window.matchMedia("(max-width: 760px)").matches;
   momentsTimeline.querySelectorAll(".moment-text").forEach((text) => {
-    const button = text.parentElement?.querySelector("[data-moment-text-toggle]");
+    const wrap = text.closest(".moment-text-wrap");
+    const button = wrap?.querySelector("[data-moment-text-toggle]");
     if (!button) return;
     const wasExpanded = text.classList.contains("is-expanded");
 
     text.classList.remove("is-collapsible", "is-expanded");
+    wrap?.classList.remove("is-expanded");
     text.style.removeProperty("--moment-text-full-height");
     button.hidden = true;
     button.textContent = "展开";
@@ -2366,6 +2372,7 @@ function setupMomentTextClamp() {
     text.style.setProperty("--moment-text-full-height", `${fullHeight}px`);
     text.classList.add("is-collapsible");
     text.classList.toggle("is-expanded", wasExpanded);
+    wrap?.classList.toggle("is-expanded", wasExpanded);
     button.hidden = false;
     button.textContent = wasExpanded ? "收起" : "展开";
     button.setAttribute("aria-expanded", String(wasExpanded));
@@ -4002,10 +4009,11 @@ mediaShelf.addEventListener("click", (event) => {
 momentsTimeline?.addEventListener("click", (event) => {
   const textToggle = event.target.closest("[data-moment-text-toggle]");
   if (textToggle) {
-    const text = textToggle.parentElement?.querySelector(".moment-text");
+    const text = textToggle.closest(".moment-text-wrap")?.querySelector(".moment-text");
     if (!text) return;
 
     const isExpanded = text.classList.toggle("is-expanded");
+    textToggle.closest(".moment-text-wrap")?.classList.toggle("is-expanded", isExpanded);
     textToggle.textContent = isExpanded ? "收起" : "展开";
     textToggle.setAttribute("aria-expanded", String(isExpanded));
     return;
@@ -4046,6 +4054,25 @@ momentViewTabs?.addEventListener("touchstart", (event) => {
   momentViewTouchStartY = touch.clientY;
 }, { passive: true });
 
+momentViewTabs?.addEventListener("touchmove", (event) => {
+  if (!momentViewTouchStartX) return;
+  const touch = event.touches[0];
+  const items = momentViewTabs.querySelector(".moment-view-items");
+  if (!touch || !items) return;
+
+  const deltaX = touch.clientX - momentViewTouchStartX;
+  const deltaY = touch.clientY - momentViewTouchStartY;
+  if (Math.abs(deltaX) < 18 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+
+  const rect = items.getBoundingClientRect();
+  const nextView = touch.clientX > rect.left + rect.width / 2 ? "album" : "record";
+  if (nextView === activeMomentView) return;
+
+  activeMomentView = nextView;
+  renderMomentView();
+  requestAnimationFrame(setupMomentTextClamp);
+}, { passive: true });
+
 momentViewTabs?.addEventListener("touchend", (event) => {
   if (!momentViewTouchStartX) return;
   const touch = event.changedTouches[0];
@@ -4058,7 +4085,9 @@ momentViewTabs?.addEventListener("touchend", (event) => {
 
   if (Math.abs(deltaX) < 34 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
 
-  activeMomentView = deltaX < 0 ? "album" : "record";
+  const items = momentViewTabs.querySelector(".moment-view-items");
+  const rect = items?.getBoundingClientRect();
+  activeMomentView = rect && touch.clientX > rect.left + rect.width / 2 ? "album" : (deltaX < 0 ? "album" : "record");
   renderMomentView();
   requestAnimationFrame(setupMomentTextClamp);
 }, { passive: true });

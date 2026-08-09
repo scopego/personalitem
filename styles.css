@@ -1920,6 +1920,10 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   word-break: normal;
 }
 
+.moment-text-fallback {
+  display: none;
+}
+
 .moment-photos {
   display: grid;
   gap: 0.42rem;
@@ -5859,7 +5863,16 @@ html[data-theme="dark"] .media-filter-panel {
     line-height: 1.74;
   }
 
-  .moment-body:has(.moment-photos) .moment-text,
+  .moment-text-fallback {
+    display: block;
+  }
+
+  .moment-text-wrap {
+    position: relative;
+    min-width: 0;
+  }
+
+  .moment-body:has(.moment-photos) .moment-text-wrap,
   .moment-body:has(.moment-photos) .moment-text-toggle {
     grid-column: 1;
   }
@@ -5873,6 +5886,10 @@ html[data-theme="dark"] .media-filter-panel {
     transition: max-height 180ms ease-out;
   }
 
+  .moment-text-wrap:not(.is-expanded) .moment-text.is-collapsible {
+    padding-right: 3.25rem;
+  }
+
   .moment-text.is-collapsible.is-expanded {
     display: block;
     max-height: var(--moment-text-full-height, 999rem);
@@ -5880,26 +5897,35 @@ html[data-theme="dark"] .media-filter-panel {
   }
 
   .moment-text-toggle {
-    align-self: flex-start;
     border: 0;
-    background: transparent;
+    background: var(--bg);
     color: var(--accent);
     cursor: pointer;
     font: inherit;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
-    line-height: 1.4;
-    margin-top: 0.35rem;
-    padding: 0;
+    line-height: 1.74;
+    padding: 0 0 0 0.55rem;
   }
 
   .moment-text-toggle[hidden] {
     display: none;
   }
 
+  .moment-text-wrap:not(.is-expanded) .moment-text-toggle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+
+  .moment-text-wrap.is-expanded .moment-text-toggle {
+    display: inline-block;
+    margin-top: 0.2rem;
+  }
+
   .moment-meta {
     order: 3;
-    margin-top: 0.55rem;
+    margin-top: 0.62rem;
     color: var(--muted);
     font-size: 13px;
     line-height: 1.5;
@@ -5955,7 +5981,9 @@ html[data-theme="dark"] .media-filter-panel {
 
   .moment-view-tabs {
     justify-content: center;
-    width: 100%;
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
     min-height: auto;
     margin-bottom: 1.35rem;
     overflow: visible;
@@ -5974,6 +6002,7 @@ html[data-theme="dark"] .media-filter-panel {
     border-radius: 999px;
     background: rgba(242, 239, 235, 0.36);
     padding: 3px;
+    width: max-content;
     opacity: 1;
     pointer-events: auto;
     transform: none;
@@ -6021,14 +6050,14 @@ html[data-theme="dark"] .media-filter-panel {
   }
 
   .moment-lightbox {
-    align-items: start;
-    justify-items: center;
+    place-items: center;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .moment-lightbox-dialog {
     max-height: none;
+    margin-block: auto;
     padding-block: 3.5rem;
   }
 
