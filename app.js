@@ -457,8 +457,12 @@ let activeView = "calendar";
 let activeMediaType = "全部";
 let mediaCategoriesOpen = false;
 let mediaSearchTerm = "";
+let activeMediaYear = "";
+let activeMediaRating = "";
+let mediaFilterOpen = false;
 let activeMediaNoteKey = "";
 let activeMediaNoteTriggerKey = "";
+let activeMediaFlipKey = "";
 let tagsExpanded = false;
 let randomNoteIndex = -1;
 let whyQuestionIndex = -1;
@@ -528,6 +532,7 @@ const mobileMenuToggle = document.querySelector("#mobileMenuToggle");
 const mobileMenu = document.querySelector("#mobileMenu");
 let navPinnedOpen = false;
 let mobileMenuCloseTimer = 0;
+let mediaFilterTouchStartY = 0;
 let calendarProgressAnimatedYear = null;
 let asideState = "closed";
 const mobilePickerFrames = new WeakMap();
@@ -700,6 +705,114 @@ function renderMediaTypeTabs() {
 
   mediaTypeTabs.classList.toggle("is-open", mediaCategoriesOpen);
   mediaTypeTabs.innerHTML = `${menuButton}<div class="media-category-items">${categoryButtons}</div>`;
+}
+
+function getMediaYears() {
+  return [
+    ...new Set(
+      mediaLogs.flatMap((group) =>
+        group.items.map((item, index) => {
+          const [groupYear, groupMonth] = group.month.split(".");
+          const date = getDateOnly(item.date) || `${groupYear}-${groupMonth}-${String(index + 1).padStart(2, "0")}`;
+          return date.slice(0, 4);
+        }),
+      ),
+    ),
+  ]
+    .filter(Boolean)
+    .sort((a, b) => b.localeCompare(a));
+}
+
+function getMediaRatingOptions() {
+  return ["5", "4.5", "4", "3.5", "3", "2.5", "2", "1.5", "1"];
+}
+
+function getMediaFilterIcon() {
+  return `
+    <svg class="mobile-filter-icon" aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M4 7h16"></path>
+      <path d="M7 12h10"></path>
+      <path d="M10 17h4"></path>
+    </svg>
+  `;
+}
+
+function getMobileMenuIcon() {
+  return "<span></span><span></span><span></span>";
+}
+
+function hasActiveMediaFilters() {
+  return Boolean(activeMediaType !== "全部" || activeMediaYear || activeMediaRating || mediaSearchTerm.trim());
+}
+
+function updateMobileNavControls() {
+  if (!mobileMenuToggle) return;
+  const isMediaView = activeView === "media";
+  mobileMenuToggle.classList.toggle("is-media-filter", isMediaView);
+  mobileMenuToggle.classList.toggle("is-active-filter", isMediaView && hasActiveMediaFilters());
+  mobileMenuToggle.setAttribute("aria-expanded", String(isMediaView ? mediaFilterOpen : navPinnedOpen));
+  mobileMenuToggle.setAttribute("aria-label", isMediaView ? "打开影集筛选" : "打开导航菜单");
+  mobileMenuToggle.innerHTML = isMediaView ? getMediaFilterIcon() : getMobileMenuIcon();
+}
+
+function renderMediaFilterSheet() {
+  let sheet = document.querySelector("#mediaFilterSheet");
+  const years = getMediaYears().filter((year) => Number(year) >= 2026);
+  const renderOption = (group, value, label, activeValue) =>
+    `<button class="${value === activeValue ? "active" : ""}" type="button" data-media-filter-group="${group}" data-media-filter-value="${escapeHtml(value)}">${label}</button>`;
+
+  const typeOptions = mediaTypes.map((type) => renderOption("type", type, type, activeMediaType)).join("");
+  const yearOptions = [
+    renderOption("year", "", "全部", activeMediaYear),
+    ...years.map((year) => renderOption("year", year, year, activeMediaYear)),
+  ].join("");
+  const ratingOptions = [
+    renderOption("rating", "", "全部", activeMediaRating),
+    ...getMediaRatingOptions().map((rating) => renderOption("rating", rating, rating, activeMediaRating)),
+  ].join("");
+
+  if (!sheet) {
+    sheet = document.createElement("div");
+    sheet.id = "mediaFilterSheet";
+    sheet.className = "media-filter-sheet";
+    document.body.appendChild(sheet);
+  }
+
+  sheet.classList.toggle("is-open", mediaFilterOpen);
+  sheet.setAttribute("aria-hidden", String(!mediaFilterOpen));
+  sheet.innerHTML = `
+    <div class="media-filter-backdrop" data-media-filter-close></div>
+    <section class="media-filter-panel" role="dialog" aria-modal="true" aria-labelledby="mediaFilterTitle">
+      <header>
+        <h3 id="mediaFilterTitle">筛选</h3>
+      </header>
+      <div class="media-filter-columns">
+        <div class="media-filter-column">
+          <span>类型</span>
+          <div>${typeOptions}</div>
+        </div>
+        <div class="media-filter-column">
+          <span>年份</span>
+          <div>${yearOptions}</div>
+        </div>
+        <div class="media-filter-column">
+          <span>评分</span>
+          <div>${ratingOptions}</div>
+        </div>
+      </div>
+      <footer>
+        <button type="button" data-media-filter-reset>重置</button>
+        <button type="button" data-media-filter-close>完成</button>
+      </footer>
+    </section>
+  `;
+}
+
+function setMediaFilterSheet(open) {
+  mediaFilterOpen = open;
+  document.body.classList.toggle("media-filter-open", open);
+  renderMediaFilterSheet();
+  updateMobileNavControls();
 }
 
 function getMediaRecordLabel(items) {
@@ -2817,16 +2930,22 @@ function moveMomentLightbox(direction) {
 function renderMediaShelf() {
   const mediaKeyword = mediaSearchTerm.trim().toLowerCase();
   const filteredGroups = mediaLogs
-    .map((group) => ({
-      ...group,
-      items: group.items.filter(
-        (item) => {
-          const matchType = activeMediaType === "全部" || item.type === activeMediaType;
-          const matchSearch = !mediaKeyword || getMediaSearchText(item).includes(mediaKeyword);
-          return matchType && matchSearch;
-        },
-      ),
-    }))
+    .map((group) => {
+      const [year, month] = group.month.split(".");
+      return {
+        ...group,
+        items: group.items.filter(
+          (item, index) => {
+            const mediaDate = getDateOnly(item.date) || `${year}-${month}-${String(index + 1).padStart(2, "0")}`;
+            const matchType = activeMediaType === "全部" || item.type === activeMediaType;
+            const matchYear = !activeMediaYear || mediaDate.startsWith(`${activeMediaYear}-`);
+            const matchRating = !activeMediaRating || Number(item.rating) === Number(activeMediaRating);
+            const matchSearch = !mediaKeyword || getMediaSearchText(item).includes(mediaKeyword);
+            return matchType && matchYear && matchRating && matchSearch;
+          },
+        ),
+      };
+    })
     .filter((group) => group.items.length);
 
   if (!filteredGroups.length) {
@@ -2862,9 +2981,11 @@ function renderMediaShelf() {
                         const noteCount = getMediaNoteCount(mediaNotes, noteKey);
                         const mediaDate = getDateOnly(item.date) || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
                         const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
+                        const mediaTimeFull = `${formatDate(mediaDate)} 21:30`;
                         return `
-                        <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
+                        <article class="media-card ${activeMediaFlipKey === noteKey ? "is-flipped" : ""}" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
                           <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
+                            <button class="media-mobile-flip-trigger" type="button" data-media-flip="${escapeHtml(noteKey)}" aria-label="查看${item.title}短评"></button>
                             <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
                             <button class="media-note-button ${noteCount ? "has-note" : ""}" type="button" data-note-key="${escapeHtml(noteKey)}" aria-label="查看或给${item.title}留言" title="查看留言">
                               <span aria-hidden="true"></span>
@@ -2874,10 +2995,14 @@ function renderMediaShelf() {
                             <div class="media-popover" id="note-${group.month}-${itemIndex}" role="tooltip">
                               <p class="media-review">${item.review}</p>
                               <div class="media-meta">
-                                <span>${mediaTime}</span>
+                                <span><span class="media-time-short">${mediaTime}</span><span class="media-time-full">${mediaTimeFull}</span></span>
                                 <span aria-hidden="true">·</span>
                                 <span class="rating">${getRatingDots(item.rating)}</span>
                               </div>
+                            </div>
+                            <div class="media-mobile-back" data-media-flip="${escapeHtml(noteKey)}" aria-hidden="${activeMediaFlipKey === noteKey ? "false" : "true"}">
+                              <p>${item.review || "还没有写短评。"}</p>
+                              <span>${mediaTimeFull}</span>
                             </div>
                           </div>
                           <div class="media-caption">
@@ -3462,6 +3587,11 @@ function setActiveView(view) {
   });
   renderSidebarForView(activeView);
   siteShell.classList.toggle("media-mode", activeView === "media");
+  topNav?.classList.toggle("is-media-view", activeView === "media");
+  if (activeView !== "media" && mediaFilterOpen) {
+    setMediaFilterSheet(false);
+  }
+  updateMobileNavControls();
   siteShell.classList.toggle("moments-mode", activeView === "moments");
   siteShell.classList.toggle("calendar-mode", activeView === "calendar");
   siteShell.classList.toggle("archive-mode", activeView === "archive");
@@ -3493,6 +3623,7 @@ function getInitialView() {
 function setMobileMenu(open) {
   window.clearTimeout(mobileMenuCloseTimer);
   navPinnedOpen = open;
+  document.body.classList.toggle("mobile-nav-open", open);
   mobileMenuToggle?.setAttribute("aria-expanded", String(open));
   if (mobileMenu) {
     if (open) {
@@ -3578,6 +3709,10 @@ document.addEventListener("click", (event) => {
 
 mobileMenuToggle?.addEventListener("click", (event) => {
   event.stopPropagation();
+  if (activeView === "media") {
+    setMediaFilterSheet(!mediaFilterOpen);
+    return;
+  }
   setMobileMenu(mobileMenu ? mobileMenu.hidden : true);
 });
 
@@ -3587,6 +3722,7 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
+    if (mediaFilterOpen) setMediaFilterSheet(false);
     setMobileMenu(false);
   }
 });
@@ -3644,6 +3780,7 @@ mediaSearchToggle.addEventListener("click", () => {
 mediaSearchInput.addEventListener("input", (event) => {
   mediaSearchTerm = event.target.value;
   renderMediaShelf();
+  updateMobileNavControls();
 });
 
 mediaSearchInput.addEventListener("keydown", (event) => {
@@ -3652,6 +3789,7 @@ mediaSearchInput.addEventListener("keydown", (event) => {
     mediaSearchInput.value = "";
     mediaSearchTerm = "";
     renderMediaShelf();
+    updateMobileNavControls();
     return;
   }
 
@@ -3659,6 +3797,56 @@ mediaSearchInput.addEventListener("keydown", (event) => {
     event.preventDefault();
     mediaSearchTerm = mediaSearchInput.value;
     renderMediaShelf();
+    updateMobileNavControls();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  const sheet = event.target.closest("#mediaFilterSheet");
+  if (!sheet) return;
+
+  const closeButton = event.target.closest("[data-media-filter-close]");
+  if (closeButton) {
+    setMediaFilterSheet(false);
+    return;
+  }
+
+  const resetButton = event.target.closest("[data-media-filter-reset]");
+  if (resetButton) {
+    activeMediaType = "全部";
+    activeMediaYear = "";
+    activeMediaRating = "";
+    activeMediaFlipKey = "";
+    renderMediaTypeTabs();
+    renderMediaShelf();
+    renderMediaFilterSheet();
+    updateMobileNavControls();
+    return;
+  }
+
+  const option = event.target.closest("[data-media-filter-group]");
+  if (!option) return;
+
+  const value = option.dataset.mediaFilterValue || "";
+  if (option.dataset.mediaFilterGroup === "type") activeMediaType = value || "全部";
+  if (option.dataset.mediaFilterGroup === "year") activeMediaYear = value;
+  if (option.dataset.mediaFilterGroup === "rating") activeMediaRating = value;
+  activeMediaFlipKey = "";
+  renderMediaTypeTabs();
+  renderMediaShelf();
+  renderMediaFilterSheet();
+  updateMobileNavControls();
+});
+
+document.addEventListener("pointerdown", (event) => {
+  if (!event.target.closest(".media-filter-panel")) return;
+  mediaFilterTouchStartY = event.clientY;
+});
+
+document.addEventListener("pointerup", (event) => {
+  if (!mediaFilterOpen || !event.target.closest(".media-filter-panel")) return;
+  if (event.clientY - mediaFilterTouchStartY > 72) {
+    setMediaFilterSheet(false);
   }
 });
 
@@ -3667,9 +3855,21 @@ mediaShelf.addEventListener("click", (event) => {
   if (clearButton) {
     mediaSearchTerm = "";
     activeMediaType = "全部";
+    activeMediaYear = "";
+    activeMediaRating = "";
+    activeMediaFlipKey = "";
     mediaCategoriesOpen = false;
     mediaSearchInput.value = "";
     renderMediaTypeTabs();
+    renderMediaShelf();
+    updateMobileNavControls();
+    return;
+  }
+
+  const flipButton = event.target.closest("[data-media-flip]");
+  if (flipButton) {
+    event.preventDefault();
+    activeMediaFlipKey = activeMediaFlipKey === flipButton.dataset.mediaFlip ? "" : flipButton.dataset.mediaFlip;
     renderMediaShelf();
     return;
   }
