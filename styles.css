@@ -4423,7 +4423,7 @@ html[data-theme="dark"] .media-filter-panel {
     transition: none;
   }
 
-  .media-card.is-expanded .media-cover::after {
+  .media-card.is-expanded::after {
     animation: none;
   }
 }
@@ -5964,24 +5964,15 @@ html[data-theme="dark"] .media-filter-panel {
 
   .media-card {
     min-width: 0;
+    position: relative;
+    border-radius: 12px;
   }
 
-  .media-cover {
-    aspect-ratio: 3 / 4.35;
-    min-height: auto;
-    padding: 0.58rem;
-    border-radius: 9px;
-    transition:
-      filter 180ms ease,
-      border-color 180ms ease;
-    will-change: auto;
-  }
-
-  .media-cover::after {
+  .media-card::after {
     content: "";
     position: absolute;
     z-index: 6;
-    inset: 0;
+    inset: -5px -5px -6px;
     border-radius: inherit;
     padding: 1px;
     background:
@@ -6005,6 +5996,17 @@ html[data-theme="dark"] .media-filter-panel {
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
     mask-composite: exclude;
+  }
+
+  .media-cover {
+    aspect-ratio: 3 / 4.35;
+    min-height: auto;
+    padding: 0.58rem;
+    border-radius: 9px;
+    transition:
+      filter 180ms ease,
+      border-color 180ms ease;
+    will-change: auto;
   }
 
   .media-card:hover .media-cover,
@@ -6082,14 +6084,16 @@ html[data-theme="dark"] .media-filter-panel {
     white-space: normal;
   }
 
-  .media-meta span:first-child {
+  .media-meta > span:first-child {
     order: 2;
+    display: block;
+    justify-self: start;
     overflow: visible;
     text-overflow: clip;
     white-space: nowrap;
   }
 
-  .media-meta span:nth-child(2) {
+  .media-meta > span:nth-child(2) {
     display: none;
   }
 
@@ -6108,7 +6112,7 @@ html[data-theme="dark"] .media-filter-panel {
     filter: brightness(1.02);
   }
 
-  .media-card.is-expanded .media-cover::after {
+  .media-card.is-expanded::after {
     opacity: 1;
     animation: mediaMobileBorderFlow 1.85s linear infinite;
   }

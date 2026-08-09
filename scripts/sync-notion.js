@@ -203,7 +203,9 @@ function mapMedia(page) {
   const title = getTitle(page, "Title");
   if (!title) return null;
 
-  const finishedAt = normalizeDateOnly(getDateStart(page, "FinishedAt") || getDateStart(page, "SortDate") || "");
+  const finishedAtRaw = getDateStart(page, "FinishedAt") || getDateStart(page, "SortDate") || "";
+  const finishedDateTime = splitDateTime(finishedAtRaw);
+  const finishedAt = normalizeDateOnly(finishedAtRaw);
   const cover = getFiles(page, "Cover")[0];
   const localPoster = getLocalAssetPath(getRichText(page, "LocalPoster"), "assets/images/movies");
 
@@ -211,6 +213,7 @@ function mapMedia(page) {
     month: finishedAt ? finishedAt.slice(0, 7).replace("-", ".") : "未归档",
     item: {
       date: finishedAt,
+      time: finishedDateTime.time,
       type: getSelectName(page, "Type") || "综合",
       title,
       creator: getRichText(page, "Creator"),

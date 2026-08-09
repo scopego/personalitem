@@ -2997,8 +2997,9 @@ function renderMediaShelf() {
                         const noteKey = getMediaNoteKey(group, item);
                         const noteCount = getMediaNoteCount(mediaNotes, noteKey);
                         const mediaDate = getDateOnly(item.date) || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
-                        const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
-                        const mediaTimeFull = `${formatDate(mediaDate)} 21:30`;
+                        const mediaClock = item.time || "21:30";
+                        const mediaTime = `${formatShortDate(mediaDate)} ${mediaClock}`;
+                        const mediaTimeFull = `${formatDate(mediaDate)} ${mediaClock}`;
                         return `
                         <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
                           <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
@@ -3885,6 +3886,21 @@ mediaShelf.addEventListener("click", (event) => {
       if (item !== card) item.classList.remove("is-expanded");
     });
     card?.classList.toggle("is-expanded", !wasExpanded);
+    return;
+  }
+
+  const mobileCard = event.target.closest(".media-card");
+  if (
+    mobileCard &&
+    window.matchMedia("(max-width: 760px)").matches &&
+    !event.target.closest(".media-caption a") &&
+    !event.target.closest(".media-note-button")
+  ) {
+    const wasExpanded = mobileCard.classList.contains("is-expanded");
+    mediaShelf.querySelectorAll(".media-card.is-expanded").forEach((item) => {
+      if (item !== mobileCard) item.classList.remove("is-expanded");
+    });
+    mobileCard.classList.toggle("is-expanded", !wasExpanded);
     return;
   }
 
