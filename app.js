@@ -459,7 +459,6 @@ let mediaCategoriesOpen = false;
 let mediaSearchTerm = "";
 let activeMediaNoteKey = "";
 let activeMediaNoteTriggerKey = "";
-let activeMediaFlipKey = "";
 let tagsExpanded = false;
 let randomNoteIndex = -1;
 let whyQuestionIndex = -1;
@@ -522,8 +521,6 @@ const mediaShelf = document.querySelector("#mediaShelf");
 const mediaTypeTabs = document.querySelector("#mediaTypeTabs");
 const mediaSearchInput = document.querySelector("#mediaSearchInput");
 const mediaSearchToggle = document.querySelector("#mediaSearchToggle");
-const topNavMediaSearchInput = document.querySelector("#topNavMediaSearchInput");
-const topNavMediaSearchToggle = document.querySelector("#topNavMediaSearchToggle");
 const topNav = document.querySelector("#topNav");
 const asideToggle = document.querySelector("#asideToggle");
 const colorModeToggle = document.querySelector("#colorModeToggle");
@@ -694,14 +691,14 @@ function renderMediaTypeTabs() {
     </button>
   `;
   const categoryButtons = mediaTypes
+    .slice(1)
     .map(
       (type, index) =>
-        `<button class="${type === "全部" ? "media-all-tab " : ""}${type === activeMediaType ? "active" : ""}" type="button" data-media-type="${type}" style="--tab-index: ${index + 1}">${type}</button>`,
+        `<button class="${type === activeMediaType ? "active" : ""}" type="button" data-media-type="${type}" style="--tab-index: ${index + 1}">${type}</button>`,
     )
     .join("");
 
   mediaTypeTabs.classList.toggle("is-open", mediaCategoriesOpen);
-  mediaTypeTabs.classList.toggle("has-filter", activeMediaType !== "全部");
   mediaTypeTabs.innerHTML = `${menuButton}<div class="media-category-items">${categoryButtons}</div>`;
 }
 
@@ -727,19 +724,6 @@ function getMediaTypeLabel(type) {
 
 function getMediaSearchText(item) {
   return [item.title, item.creator, ...(item.tags || [])].join(" ").toLowerCase();
-}
-
-function syncMediaSearchInputs() {
-  [mediaSearchInput, topNavMediaSearchInput].forEach((input) => {
-    if (input && input.value !== mediaSearchTerm) input.value = mediaSearchTerm;
-  });
-}
-
-function updateMediaSearch(value) {
-  mediaSearchTerm = value.trimStart();
-  activeMediaFlipKey = "";
-  syncMediaSearchInputs();
-  renderMediaShelf();
 }
 
 function getMediaNoteKey(group, item) {
@@ -2871,37 +2855,23 @@ function renderMediaShelf() {
                         const noteCount = getMediaNoteCount(mediaNotes, noteKey);
                         const mediaDate = getDateOnly(item.date) || `${year}-${month}-${String(itemIndex + 1).padStart(2, "0")}`;
                         const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
-                        const isFlipped = activeMediaFlipKey === noteKey;
                         return `
-                        <article class="media-card ${isFlipped ? "is-flipped" : ""}" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
-                          <div class="media-card-flip">
-                            <div class="media-card-face media-card-front">
-                              <div class="media-cover cover-${item.cover}" data-media-flip-key="${escapeHtml(noteKey)}" role="button" tabindex="0" aria-label="查看${item.title}短评" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
-                                <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
-                                <button class="media-note-button ${noteCount ? "has-note" : ""}" type="button" data-note-key="${escapeHtml(noteKey)}" aria-label="查看或给${item.title}留言" title="查看留言">
-                                  <span aria-hidden="true"></span>
-                                  <span aria-hidden="true"></span>
-                                  <span aria-hidden="true"></span>
-                                </button>
-                                <div class="media-mobile-meta">
-                                  <span class="rating">${getRatingDots(item.rating)}</span>
-                                  <time datetime="${mediaDate}">${mediaTime}</time>
-                                </div>
-                                <div class="media-popover" id="note-${group.month}-${itemIndex}" role="tooltip">
-                                  <p class="media-review">${item.review}</p>
-                                  <div class="media-meta">
-                                    <span>${mediaTime}</span>
-                                    <span aria-hidden="true">·</span>
-                                    <span class="rating">${getRatingDots(item.rating)}</span>
-                                  </div>
-                                </div>
+                        <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
+                          <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
+                            <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
+                            <button class="media-note-button ${noteCount ? "has-note" : ""}" type="button" data-note-key="${escapeHtml(noteKey)}" aria-label="查看或给${item.title}留言" title="查看留言">
+                              <span aria-hidden="true"></span>
+                              <span aria-hidden="true"></span>
+                              <span aria-hidden="true"></span>
+                            </button>
+                            <div class="media-popover" id="note-${group.month}-${itemIndex}" role="tooltip">
+                              <p class="media-review">${item.review}</p>
+                              <div class="media-meta">
+                                <span>${mediaTime}</span>
+                                <span aria-hidden="true">·</span>
+                                <span class="rating">${getRatingDots(item.rating)}</span>
                               </div>
                             </div>
-                            <button class="media-card-face media-mobile-back" type="button" data-media-flip-key="${escapeHtml(noteKey)}" aria-label="返回${item.title}封面">
-                              <span>我的短评</span>
-                              <p>${escapeHtml(item.review || "还没有写下短评。")}</p>
-                              <small>${mediaTime}</small>
-                            </button>
                           </div>
                           <div class="media-caption">
                             <a href="${item.url}" target="_blank" rel="noreferrer" aria-describedby="note-${group.month}-${itemIndex}">
@@ -3488,7 +3458,6 @@ function setActiveView(view) {
   siteShell.classList.toggle("moments-mode", activeView === "moments");
   siteShell.classList.toggle("calendar-mode", activeView === "calendar");
   siteShell.classList.toggle("archive-mode", activeView === "archive");
-  topNav?.classList.toggle("media-mode", activeView === "media");
   applyAsideState();
   if (isViewSwitching) {
     window.requestAnimationFrame(() => {
@@ -3517,7 +3486,6 @@ function getInitialView() {
 function setMobileMenu(open) {
   window.clearTimeout(mobileMenuCloseTimer);
   navPinnedOpen = open;
-  topNav?.classList.toggle("is-mobile-menu-open", open);
   mobileMenuToggle?.setAttribute("aria-expanded", String(open));
   if (mobileMenu) {
     if (open) {
@@ -3579,7 +3547,8 @@ document.addEventListener("click", (event) => {
   }
   if (targetView === "media" && link.dataset.calendarTargetDate) {
     activeMediaType = "全部";
-    updateMediaSearch("");
+    mediaSearchTerm = "";
+    if (mediaSearchInput) mediaSearchInput.value = "";
     renderMediaTypeTabs();
     renderMediaShelf();
   }
@@ -3644,7 +3613,6 @@ mediaTypeTabs.addEventListener("click", (event) => {
   if (menuButton) {
     mediaCategoriesOpen = !mediaCategoriesOpen;
     activeMediaType = "全部";
-    activeMediaFlipKey = "";
     renderMediaTypeTabs();
     renderMediaShelf();
     return;
@@ -3654,7 +3622,6 @@ mediaTypeTabs.addEventListener("click", (event) => {
   if (!button) return;
 
   activeMediaType = button.dataset.mediaType;
-  activeMediaFlipKey = "";
   renderMediaTypeTabs();
   renderMediaShelf();
 });
@@ -3667,60 +3634,35 @@ mediaSearchToggle.addEventListener("click", () => {
   mediaSearchInput.focus();
 });
 
-mediaSearchInput.addEventListener("input", (event) => updateMediaSearch(event.target.value));
-topNavMediaSearchInput?.addEventListener("input", (event) => updateMediaSearch(event.target.value));
+mediaSearchInput.addEventListener("input", (event) => {
+  mediaSearchTerm = event.target.value;
+  renderMediaShelf();
+});
 
 mediaSearchInput.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     event.preventDefault();
-    updateMediaSearch("");
+    mediaSearchInput.value = "";
+    mediaSearchTerm = "";
+    renderMediaShelf();
     return;
   }
 
   if (event.key === "Enter") {
     event.preventDefault();
-    updateMediaSearch(mediaSearchInput.value);
+    mediaSearchTerm = mediaSearchInput.value;
+    renderMediaShelf();
   }
-});
-
-topNavMediaSearchInput?.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    event.preventDefault();
-    updateMediaSearch("");
-    return;
-  }
-
-  if (event.key === "Enter") {
-    event.preventDefault();
-    updateMediaSearch(topNavMediaSearchInput.value);
-  }
-});
-
-topNavMediaSearchToggle?.addEventListener("mousedown", (event) => {
-  event.preventDefault();
-});
-
-topNavMediaSearchToggle?.addEventListener("click", () => {
-  topNavMediaSearchInput?.focus();
 });
 
 mediaShelf.addEventListener("click", (event) => {
   const clearButton = event.target.closest("[data-media-clear-search]");
   if (clearButton) {
-    updateMediaSearch("");
+    mediaSearchTerm = "";
     activeMediaType = "全部";
     mediaCategoriesOpen = false;
+    mediaSearchInput.value = "";
     renderMediaTypeTabs();
-    renderMediaShelf();
-    return;
-  }
-
-  const flipTarget = event.target.closest("[data-media-flip-key]");
-  if (flipTarget && isMobileCalendarLayout()) {
-    event.preventDefault();
-    if (event.target.closest(".media-note-button")) return;
-    const key = flipTarget.dataset.mediaFlipKey;
-    activeMediaFlipKey = activeMediaFlipKey === key ? "" : key;
     renderMediaShelf();
     return;
   }
@@ -3731,16 +3673,6 @@ mediaShelf.addEventListener("click", (event) => {
   activeMediaNoteKey = button.dataset.noteKey;
   activeMediaNoteTriggerKey = button.dataset.noteKey;
   renderMediaNoteModal();
-});
-
-mediaShelf.addEventListener("keydown", (event) => {
-  if (!["Enter", " "].includes(event.key)) return;
-  const flipTarget = event.target.closest("[data-media-flip-key]");
-  if (!flipTarget || !isMobileCalendarLayout()) return;
-  event.preventDefault();
-  const key = flipTarget.dataset.mediaFlipKey;
-  activeMediaFlipKey = activeMediaFlipKey === key ? "" : key;
-  renderMediaShelf();
 });
 
 momentsTimeline?.addEventListener("click", (event) => {
