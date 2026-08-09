@@ -5688,17 +5688,32 @@ html[data-theme="dark"] .media-filter-panel {
   }
 
   .top-nav.is-media-view .media-mobile-action {
+    position: absolute;
+    top: calc((var(--header-height) - 2.4rem) / 2);
     display: grid;
-    flex: 0 0 auto;
-    margin-left: 0.2rem;
+    flex: none;
+    margin-left: 0;
   }
 
-  .top-nav.is-media-view .color-mode-toggle + .media-mobile-action {
-    margin-left: auto;
+  .top-nav.is-media-view .media-mobile-filter-toggle {
+    right: calc(var(--page-gutter) + 2.56rem);
+  }
+
+  .top-nav.is-media-view .media-mobile-search-toggle {
+    right: calc(var(--page-gutter) + 4.92rem);
   }
 
   .top-nav.is-media-view .mobile-menu-button {
-    margin-left: 0.08rem;
+    margin-left: auto;
+    justify-self: end;
+  }
+
+  .top-nav.is-media-view .media-mobile-filter-toggle + .mobile-menu-button {
+    margin-left: auto;
+  }
+
+  body.mobile-nav-open .top-nav.is-media-view .mobile-menu-button {
+    margin-left: auto;
   }
 
   .top-nav.is-media-view .media-mobile-action.is-open,
