@@ -2122,11 +2122,9 @@ function renderArchiveFilter() {
 function renderMomentPhotos(moment) {
   if (!moment.photos.length) return "";
 
-  const visiblePhotos = moment.photos.slice(0, Math.min(moment.photos.length, 4));
-  const desktopHiddenCount = Math.max(0, moment.photos.length - 1);
-  const mobileHiddenCount = Math.max(0, moment.photos.length - visiblePhotos.length);
-  const mobileCountClass = `is-mobile-count-${visiblePhotos.length}`;
-  const layoutClass = `is-single is-${moment.photos[0].shape || "wide"} ${mobileCountClass} ${desktopHiddenCount ? "has-more" : ""}`;
+  const visiblePhotos = moment.photos.slice(0, 1);
+  const hiddenCount = Math.max(0, moment.photos.length - visiblePhotos.length);
+  const layoutClass = `is-single is-${moment.photos[0].shape || "wide"} ${hiddenCount ? "has-more" : ""}`;
 
   return `
     <div class="moment-photos ${layoutClass}" aria-label="${moment.date} 的照片">
@@ -2137,10 +2135,9 @@ function renderMomentPhotos(moment) {
             : "";
 
           return `
-            <button class="moment-photo moment-photo-${index + 1}${index > 0 ? " is-mobile-extra" : ""}" type="button" data-moment-photo="${moment.id}" data-photo-index="${index}" aria-label="查看照片 ${index + 1}">
+            <button class="moment-photo moment-photo-${index + 1}" type="button" data-moment-photo="${moment.id}" data-photo-index="${index}" aria-label="查看照片 ${index + 1}">
               <img src="${photo.src}" alt="${escapeHtml(photo.alt)}" loading="lazy"${dimensionAttrs} />
-              ${desktopHiddenCount && index === 0 ? `<span class="moment-more is-desktop-more">+${desktopHiddenCount}</span>` : ""}
-              ${mobileHiddenCount && index === visiblePhotos.length - 1 ? `<span class="moment-more is-mobile-more">+${mobileHiddenCount}</span>` : ""}
+              ${hiddenCount && index === visiblePhotos.length - 1 ? `<span class="moment-more">+${hiddenCount}</span>` : ""}
             </button>
           `;
         })
@@ -2181,14 +2178,12 @@ function renderMomentMobileInfo(moment) {
     weekday: "short",
     timeZone: "Asia/Shanghai",
   }).format(new Date(`${moment.date}T00:00:00+08:00`));
-  const weather = moment.weather ? `<span>${escapeHtml(moment.weather)}</span>` : "";
+  const weather = moment.weather ? ` ${escapeHtml(moment.weather)}` : "";
 
   return `
     <time class="moment-mobile-info" datetime="${moment.date}T${moment.time}">
-      <span>${formatDate(moment.date)}</span>
-      <span>${weekday}</span>
-      <span>${escapeHtml(moment.time)}</span>
-      ${weather}
+      <span>${formatDate(moment.date)} ${escapeHtml(moment.time)}</span>
+      <span>· ${weekday}${weather}</span>
     </time>
   `;
 }
@@ -2276,7 +2271,10 @@ function renderMoments() {
                     ${renderMomentDateTime(moment)}
                     ${renderMomentMobileInfo(moment)}
                     <div class="moment-body">
-                      ${moment.text ? `<p class="moment-text">${escapeHtml(moment.text).replace(/\n/g, "<br>")}</p>` : ""}
+                      ${moment.text ? `
+                        <p class="moment-text">${escapeHtml(moment.text).replace(/\n/g, "<br>")}</p>
+                        <button class="moment-text-toggle" type="button" data-moment-text-toggle aria-expanded="false" hidden>展开</button>
+                      ` : ""}
                       ${renderMomentPhotos(moment)}
                       ${renderMomentMeta(moment)}
                     </div>
@@ -2339,6 +2337,33 @@ function renderMomentView() {
   momentViewTabs.innerHTML = `${menuButton}<div class="moment-view-items">${viewButtons}</div>`;
   momentsTimeline.hidden = activeMomentView !== "record";
   momentsAlbum.hidden = activeMomentView !== "album";
+}
+
+function setupMomentTextClamp() {
+  if (!momentsTimeline) return;
+
+  const isMobile = window.matchMedia("(max-width: 760px)").matches;
+  momentsTimeline.querySelectorAll(".moment-text").forEach((text) => {
+    const button = text.parentElement?.querySelector("[data-moment-text-toggle]");
+    if (!button) return;
+
+    text.classList.remove("is-collapsible", "is-expanded");
+    text.style.removeProperty("--moment-text-full-height");
+    button.hidden = true;
+    button.textContent = "展开";
+    button.setAttribute("aria-expanded", "false");
+
+    if (!isMobile) return;
+
+    const lineHeight = Number.parseFloat(window.getComputedStyle(text).lineHeight) || 24;
+    const collapsedHeight = lineHeight * 4;
+    const fullHeight = text.scrollHeight;
+    if (fullHeight <= collapsedHeight + 2) return;
+
+    text.style.setProperty("--moment-text-full-height", `${fullHeight}px`);
+    text.classList.add("is-collapsible");
+    button.hidden = false;
+  });
 }
 
 function formatCalendarDate(year, month, day) {
@@ -3479,6 +3504,7 @@ function renderAll() {
   renderMoments();
   renderMomentAlbum();
   renderMomentView();
+  setupMomentTextClamp();
   renderMomentSidePanel();
   renderCalendarYears();
   renderYearCalendar();
@@ -3936,6 +3962,17 @@ mediaShelf.addEventListener("click", (event) => {
 });
 
 momentsTimeline?.addEventListener("click", (event) => {
+  const textToggle = event.target.closest("[data-moment-text-toggle]");
+  if (textToggle) {
+    const text = textToggle.parentElement?.querySelector(".moment-text");
+    if (!text) return;
+
+    const isExpanded = text.classList.toggle("is-expanded");
+    textToggle.textContent = isExpanded ? "收起" : "展开";
+    textToggle.setAttribute("aria-expanded", String(isExpanded));
+    return;
+  }
+
   const photoButton = event.target.closest("[data-moment-photo]");
   if (photoButton) {
     openMomentLightbox(photoButton.dataset.momentPhoto, Number(photoButton.dataset.photoIndex || 0));
@@ -3961,6 +3998,7 @@ momentViewTabs?.addEventListener("click", (event) => {
   if (!button) return;
   activeMomentView = button.dataset.momentView;
   renderMomentView();
+  requestAnimationFrame(setupMomentTextClamp);
 });
 
 calendarYears?.addEventListener("click", (event) => {
@@ -4337,6 +4375,7 @@ window.addEventListener("resize", () => {
   requestAnimationFrame(() => {
     scrollActiveCalendarYearIntoView();
     setupTrumanReveals(yearCalendar);
+    setupMomentTextClamp();
   });
 });
 
