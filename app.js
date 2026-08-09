@@ -460,6 +460,7 @@ let mediaSearchTerm = "";
 let activeMediaYear = "";
 let activeMediaRating = "";
 let mediaFilterOpen = false;
+let mediaMobileSearchOpen = false;
 let activeMediaNoteKey = "";
 let activeMediaNoteTriggerKey = "";
 let tagsExpanded = false;
@@ -530,6 +531,8 @@ const topNav = document.querySelector("#topNav");
 const asideToggle = document.querySelector("#asideToggle");
 const colorModeToggle = document.querySelector("#colorModeToggle");
 const mobileMenuToggle = document.querySelector("#mobileMenuToggle");
+const mediaMobileSearchToggle = document.querySelector("#mediaMobileSearchToggle");
+const mediaMobileFilterToggle = document.querySelector("#mediaMobileFilterToggle");
 const mobileMenu = document.querySelector("#mobileMenu");
 let navPinnedOpen = false;
 let mobileMenuCloseTimer = 0;
@@ -728,16 +731,6 @@ function getMediaRatingOptions() {
   return ["5", "4.5", "4", "3.5", "3", "2.5", "2", "1.5", "1"];
 }
 
-function getMediaFilterIcon() {
-  return `
-    <svg class="mobile-filter-icon" aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M4 7h16"></path>
-      <path d="M7 12h10"></path>
-      <path d="M10 17h4"></path>
-    </svg>
-  `;
-}
-
 function getMobileMenuIcon() {
   return "<span></span><span></span><span></span>";
 }
@@ -747,13 +740,17 @@ function hasActiveMediaFilters() {
 }
 
 function updateMobileNavControls() {
-  if (!mobileMenuToggle) return;
   const isMediaView = activeView === "media";
-  mobileMenuToggle.classList.toggle("is-media-filter", isMediaView);
-  mobileMenuToggle.classList.toggle("is-active-filter", isMediaView && hasActiveMediaFilters());
-  mobileMenuToggle.setAttribute("aria-expanded", String(isMediaView ? mediaFilterOpen : navPinnedOpen));
-  mobileMenuToggle.setAttribute("aria-label", isMediaView ? "打开影集筛选" : "打开导航菜单");
-  mobileMenuToggle.innerHTML = isMediaView ? getMediaFilterIcon() : getMobileMenuIcon();
+  mobileMenuToggle?.classList.remove("is-media-filter", "is-active-filter");
+  mobileMenuToggle?.setAttribute("aria-expanded", String(navPinnedOpen));
+  mobileMenuToggle?.setAttribute("aria-label", "打开导航菜单");
+  if (mobileMenuToggle) mobileMenuToggle.innerHTML = getMobileMenuIcon();
+
+  mediaMobileSearchToggle?.classList.toggle("is-open", isMediaView && mediaMobileSearchOpen);
+  mediaMobileSearchToggle?.setAttribute("aria-expanded", String(isMediaView && mediaMobileSearchOpen));
+  mediaMobileFilterToggle?.classList.toggle("is-active-filter", isMediaView && (mediaFilterOpen || hasActiveMediaFilters()));
+  mediaMobileFilterToggle?.setAttribute("aria-expanded", String(isMediaView && mediaFilterOpen));
+  document.body.classList.toggle("media-search-open", isMediaView && mediaMobileSearchOpen);
 }
 
 function renderMediaFilterSheet() {
@@ -812,6 +809,7 @@ function renderMediaFilterSheet() {
 function setMediaFilterSheet(open) {
   mediaFilterOpen = open;
   document.body.classList.toggle("media-filter-open", open);
+  if (open) mediaMobileSearchOpen = false;
   renderMediaFilterSheet();
   updateMobileNavControls();
 }
@@ -3662,6 +3660,9 @@ function setActiveView(view) {
   if (activeView !== "media" && mediaFilterOpen) {
     setMediaFilterSheet(false);
   }
+  if (activeView !== "media") {
+    mediaMobileSearchOpen = false;
+  }
   updateMobileNavControls();
   siteShell.classList.toggle("moments-mode", activeView === "moments");
   siteShell.classList.toggle("calendar-mode", activeView === "calendar");
@@ -3694,6 +3695,10 @@ function getInitialView() {
 function setMobileMenu(open) {
   window.clearTimeout(mobileMenuCloseTimer);
   navPinnedOpen = open;
+  if (open) {
+    mediaMobileSearchOpen = false;
+    if (mediaFilterOpen) setMediaFilterSheet(false);
+  }
   document.body.classList.toggle("mobile-nav-open", open);
   mobileMenuToggle?.setAttribute("aria-expanded", String(open));
   if (mobileMenu) {
@@ -3780,20 +3785,45 @@ document.addEventListener("click", (event) => {
 
 mobileMenuToggle?.addEventListener("click", (event) => {
   event.stopPropagation();
-  if (activeView === "media") {
-    setMediaFilterSheet(!mediaFilterOpen);
-    return;
-  }
   setMobileMenu(mobileMenu ? mobileMenu.hidden : true);
 });
 
+mediaMobileSearchToggle?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  if (activeView !== "media") return;
+  mediaMobileSearchOpen = !mediaMobileSearchOpen;
+  if (mediaMobileSearchOpen) {
+    setMobileMenu(false);
+    if (mediaFilterOpen) setMediaFilterSheet(false);
+  }
+  updateMobileNavControls();
+  if (mediaMobileSearchOpen) requestAnimationFrame(() => mediaSearchInput?.focus());
+});
+
+mediaMobileFilterToggle?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  if (activeView !== "media") return;
+  setMobileMenu(false);
+  setMediaFilterSheet(!mediaFilterOpen);
+});
+
 document.addEventListener("click", (event) => {
-  if (!event.target.closest(".top-nav")) setMobileMenu(false);
+  if (!event.target.closest(".top-nav")) {
+    setMobileMenu(false);
+    if (!event.target.closest(".media-search")) {
+      mediaMobileSearchOpen = false;
+      updateMobileNavControls();
+    }
+  }
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     if (mediaFilterOpen) setMediaFilterSheet(false);
+    if (mediaMobileSearchOpen) {
+      mediaMobileSearchOpen = false;
+      updateMobileNavControls();
+    }
     setMobileMenu(false);
   }
 });
