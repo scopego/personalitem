@@ -3002,9 +3002,6 @@ function renderMediaShelf() {
                         const mediaTimeFull = `${formatDate(mediaDate)} ${mediaClock}`;
                         return `
                         <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
-                          <svg class="media-mobile-border" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <rect x="1" y="1" width="98" height="98" rx="6" ry="6" pathLength="100"></rect>
-                          </svg>
                           <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
                             <button class="media-mobile-detail-trigger" type="button" data-media-expand="${escapeHtml(noteKey)}" aria-label="查看${item.title}记录信息"></button>
                             <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
@@ -3892,11 +3889,11 @@ mediaShelf.addEventListener("click", (event) => {
     return;
   }
 
-  const mobileCard = event.target.closest(".media-card");
+  const mobileCover = event.target.closest(".media-cover");
+  const mobileCard = mobileCover?.closest(".media-card");
   if (
     mobileCard &&
     window.matchMedia("(max-width: 760px)").matches &&
-    !event.target.closest(".media-caption a") &&
     !event.target.closest(".media-note-button")
   ) {
     const wasExpanded = mobileCard.classList.contains("is-expanded");
