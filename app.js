@@ -471,6 +471,8 @@ let activeMomentView = "record";
 let momentViewMenuOpen = false;
 let activeMomentStatusItem = null;
 let momentTouchStartX = 0;
+let momentViewTouchStartX = 0;
+let momentViewTouchStartY = 0;
 let activeCalendarYear = getDefaultCalendarYear();
 let calendarYearsOpen = false;
 let activeCalendarDate = "";
@@ -2148,7 +2150,7 @@ function renderMomentPhotos(moment) {
 
 function renderMomentMeta(moment) {
   const location = moment.location ? `在${escapeHtml(moment.location)}` : "没有地点";
-  const mobileLocation = moment.location ? `<span class="moment-meta-mobile">📍${escapeHtml(moment.location)}</span>` : "";
+  const mobileLocation = moment.location ? `<span class="moment-meta-mobile">在${escapeHtml(moment.location)}</span>` : "";
 
   return `
     <div class="moment-meta">
@@ -2178,12 +2180,14 @@ function renderMomentMobileInfo(moment) {
     weekday: "short",
     timeZone: "Asia/Shanghai",
   }).format(new Date(`${moment.date}T00:00:00+08:00`));
-  const weather = moment.weather ? ` ${escapeHtml(moment.weather)}` : "";
+  const weather = moment.weather ? `<span>· ${escapeHtml(moment.weather)}</span>` : "";
 
   return `
     <time class="moment-mobile-info" datetime="${moment.date}T${moment.time}">
-      <span>${formatDate(moment.date)} ${escapeHtml(moment.time)}</span>
-      <span>· ${weekday}${weather}</span>
+      <span>${formatDate(moment.date)}</span>
+      <span>· ${weekday}</span>
+      <span>· ${escapeHtml(moment.time)}</span>
+      ${weather}
     </time>
   `;
 }
@@ -2334,7 +2338,7 @@ function renderMomentView() {
     .join("");
 
   momentViewTabs.classList.toggle("is-open", momentViewMenuOpen);
-  momentViewTabs.innerHTML = `${menuButton}<div class="moment-view-items">${viewButtons}</div>`;
+  momentViewTabs.innerHTML = `${menuButton}<div class="moment-view-items is-${activeMomentView}">${viewButtons}</div>`;
   momentsTimeline.hidden = activeMomentView !== "record";
   momentsAlbum.hidden = activeMomentView !== "album";
 }
@@ -2346,6 +2350,7 @@ function setupMomentTextClamp() {
   momentsTimeline.querySelectorAll(".moment-text").forEach((text) => {
     const button = text.parentElement?.querySelector("[data-moment-text-toggle]");
     if (!button) return;
+    const wasExpanded = text.classList.contains("is-expanded");
 
     text.classList.remove("is-collapsible", "is-expanded");
     text.style.removeProperty("--moment-text-full-height");
@@ -2362,7 +2367,10 @@ function setupMomentTextClamp() {
 
     text.style.setProperty("--moment-text-full-height", `${fullHeight}px`);
     text.classList.add("is-collapsible");
+    text.classList.toggle("is-expanded", wasExpanded);
     button.hidden = false;
+    button.textContent = wasExpanded ? "收起" : "展开";
+    button.setAttribute("aria-expanded", String(wasExpanded));
   });
 }
 
@@ -4000,6 +4008,30 @@ momentViewTabs?.addEventListener("click", (event) => {
   renderMomentView();
   requestAnimationFrame(setupMomentTextClamp);
 });
+
+momentViewTabs?.addEventListener("touchstart", (event) => {
+  const touch = event.touches[0];
+  if (!touch) return;
+  momentViewTouchStartX = touch.clientX;
+  momentViewTouchStartY = touch.clientY;
+}, { passive: true });
+
+momentViewTabs?.addEventListener("touchend", (event) => {
+  if (!momentViewTouchStartX) return;
+  const touch = event.changedTouches[0];
+  if (!touch) return;
+
+  const deltaX = touch.clientX - momentViewTouchStartX;
+  const deltaY = touch.clientY - momentViewTouchStartY;
+  momentViewTouchStartX = 0;
+  momentViewTouchStartY = 0;
+
+  if (Math.abs(deltaX) < 34 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
+
+  activeMomentView = deltaX < 0 ? "album" : "record";
+  renderMomentView();
+  requestAnimationFrame(setupMomentTextClamp);
+}, { passive: true });
 
 calendarYears?.addEventListener("click", (event) => {
   const menuButton = event.target.closest("[data-calendar-menu]");
