@@ -462,7 +462,6 @@ let activeMediaRating = "";
 let mediaFilterOpen = false;
 let activeMediaNoteKey = "";
 let activeMediaNoteTriggerKey = "";
-let activeMediaFlipKey = "";
 let tagsExpanded = false;
 let randomNoteIndex = -1;
 let whyQuestionIndex = -1;
@@ -841,6 +840,14 @@ function getMediaSearchText(item) {
 
 function getMediaNoteKey(group, item) {
   return `${group.month}-${item.type}-${item.title}`;
+}
+
+function getMediaItemByNoteKey(noteKey) {
+  for (const group of mediaLogs) {
+    const item = group.items.find((mediaItem) => getMediaNoteKey(group, mediaItem) === noteKey);
+    if (item) return item;
+  }
+  return null;
 }
 
 function getMediaNotes() {
@@ -1775,6 +1782,15 @@ function renderMediaNoteModal() {
 
   const notes = getMediaNotes();
   const currentNotes = getNotesForKey(notes, activeMediaNoteKey);
+  const activeMediaItem = getMediaItemByNoteKey(activeMediaNoteKey);
+  const reviewBlock = activeMediaItem
+    ? `
+      <div class="media-note-review">
+        <span>我的短评</span>
+        <p>${escapeHtml(activeMediaItem.review || "还没有写短评。")}</p>
+      </div>
+    `
+    : "";
   const noteItems = currentNotes.length
     ? currentNotes
         .map(
@@ -1803,6 +1819,7 @@ function renderMediaNoteModal() {
           </svg>
         </button>
       </header>
+      ${reviewBlock}
       <div class="media-note-list">${noteItems}</div>
       <form class="media-note-form">
         <label for="mediaNoteInput">留一句话</label>
@@ -2983,9 +3000,9 @@ function renderMediaShelf() {
                         const mediaTime = `${formatShortDate(mediaDate)} 21:30`;
                         const mediaTimeFull = `${formatDate(mediaDate)} 21:30`;
                         return `
-                        <article class="media-card ${activeMediaFlipKey === noteKey ? "is-flipped" : ""}" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
+                        <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
                           <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
-                            <button class="media-mobile-flip-trigger" type="button" data-media-flip="${escapeHtml(noteKey)}" aria-label="查看${item.title}短评"></button>
+                            <button class="media-mobile-detail-trigger" type="button" data-media-expand="${escapeHtml(noteKey)}" aria-label="查看${item.title}短评"></button>
                             <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
                             <button class="media-note-button ${noteCount ? "has-note" : ""}" type="button" data-note-key="${escapeHtml(noteKey)}" aria-label="查看或给${item.title}留言" title="查看留言">
                               <span aria-hidden="true"></span>
@@ -2999,10 +3016,6 @@ function renderMediaShelf() {
                                 <span aria-hidden="true">·</span>
                                 <span class="rating">${getRatingDots(item.rating)}</span>
                               </div>
-                            </div>
-                            <div class="media-mobile-back" data-media-flip="${escapeHtml(noteKey)}" aria-hidden="${activeMediaFlipKey === noteKey ? "false" : "true"}">
-                              <p>${item.review || "还没有写短评。"}</p>
-                              <span>${mediaTimeFull}</span>
                             </div>
                           </div>
                           <div class="media-caption">
@@ -3816,7 +3829,6 @@ document.addEventListener("click", (event) => {
     activeMediaType = "全部";
     activeMediaYear = "";
     activeMediaRating = "";
-    activeMediaFlipKey = "";
     renderMediaTypeTabs();
     renderMediaShelf();
     renderMediaFilterSheet();
@@ -3831,7 +3843,6 @@ document.addEventListener("click", (event) => {
   if (option.dataset.mediaFilterGroup === "type") activeMediaType = value || "全部";
   if (option.dataset.mediaFilterGroup === "year") activeMediaYear = value;
   if (option.dataset.mediaFilterGroup === "rating") activeMediaRating = value;
-  activeMediaFlipKey = "";
   renderMediaTypeTabs();
   renderMediaShelf();
   renderMediaFilterSheet();
@@ -3857,7 +3868,6 @@ mediaShelf.addEventListener("click", (event) => {
     activeMediaType = "全部";
     activeMediaYear = "";
     activeMediaRating = "";
-    activeMediaFlipKey = "";
     mediaCategoriesOpen = false;
     mediaSearchInput.value = "";
     renderMediaTypeTabs();
@@ -3866,11 +3876,15 @@ mediaShelf.addEventListener("click", (event) => {
     return;
   }
 
-  const flipButton = event.target.closest("[data-media-flip]");
-  if (flipButton) {
+  const expandButton = event.target.closest("[data-media-expand]");
+  if (expandButton) {
     event.preventDefault();
-    activeMediaFlipKey = activeMediaFlipKey === flipButton.dataset.mediaFlip ? "" : flipButton.dataset.mediaFlip;
-    renderMediaShelf();
+    const card = expandButton.closest(".media-card");
+    const wasExpanded = card?.classList.contains("is-expanded");
+    mediaShelf.querySelectorAll(".media-card.is-expanded").forEach((item) => {
+      if (item !== card) item.classList.remove("is-expanded");
+    });
+    card?.classList.toggle("is-expanded", !wasExpanded);
     return;
   }
 
