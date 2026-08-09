@@ -2122,9 +2122,11 @@ function renderArchiveFilter() {
 function renderMomentPhotos(moment) {
   if (!moment.photos.length) return "";
 
-  const visiblePhotos = moment.photos.slice(0, 1);
-  const hiddenCount = Math.max(0, moment.photos.length - visiblePhotos.length);
-  const layoutClass = `is-single is-${moment.photos[0].shape || "wide"} ${hiddenCount ? "has-more" : ""}`;
+  const visiblePhotos = moment.photos.slice(0, Math.min(moment.photos.length, 4));
+  const desktopHiddenCount = Math.max(0, moment.photos.length - 1);
+  const mobileHiddenCount = Math.max(0, moment.photos.length - visiblePhotos.length);
+  const mobileCountClass = `is-mobile-count-${visiblePhotos.length}`;
+  const layoutClass = `is-single is-${moment.photos[0].shape || "wide"} ${mobileCountClass} ${desktopHiddenCount ? "has-more" : ""}`;
 
   return `
     <div class="moment-photos ${layoutClass}" aria-label="${moment.date} 的照片">
@@ -2135,9 +2137,10 @@ function renderMomentPhotos(moment) {
             : "";
 
           return `
-            <button class="moment-photo moment-photo-${index + 1}" type="button" data-moment-photo="${moment.id}" data-photo-index="${index}" aria-label="查看照片 ${index + 1}">
+            <button class="moment-photo moment-photo-${index + 1}${index > 0 ? " is-mobile-extra" : ""}" type="button" data-moment-photo="${moment.id}" data-photo-index="${index}" aria-label="查看照片 ${index + 1}">
               <img src="${photo.src}" alt="${escapeHtml(photo.alt)}" loading="lazy"${dimensionAttrs} />
-              ${hiddenCount && index === visiblePhotos.length - 1 ? `<span class="moment-more">+${hiddenCount}</span>` : ""}
+              ${desktopHiddenCount && index === 0 ? `<span class="moment-more is-desktop-more">+${desktopHiddenCount}</span>` : ""}
+              ${mobileHiddenCount && index === visiblePhotos.length - 1 ? `<span class="moment-more is-mobile-more">+${mobileHiddenCount}</span>` : ""}
             </button>
           `;
         })
@@ -2148,10 +2151,12 @@ function renderMomentPhotos(moment) {
 
 function renderMomentMeta(moment) {
   const location = moment.location ? `在${escapeHtml(moment.location)}` : "没有地点";
+  const mobileLocation = moment.location ? `<span class="moment-meta-mobile">📍${escapeHtml(moment.location)}</span>` : "";
 
   return `
     <div class="moment-meta">
-      <span>${location}</span>
+      <span class="moment-meta-desktop">${location}</span>
+      ${mobileLocation}
     </div>
   `;
 }
@@ -2167,6 +2172,23 @@ function renderMomentDateTime(moment) {
     <time class="moment-time" datetime="${moment.date}T${moment.time}">
       <span>${formatShortDate(moment.date)} · ${weekday}</span>
       <span>${moment.time}${weather}</span>
+    </time>
+  `;
+}
+
+function renderMomentMobileInfo(moment) {
+  const weekday = new Intl.DateTimeFormat("zh-CN", {
+    weekday: "short",
+    timeZone: "Asia/Shanghai",
+  }).format(new Date(`${moment.date}T00:00:00+08:00`));
+  const weather = moment.weather ? `<span>${escapeHtml(moment.weather)}</span>` : "";
+
+  return `
+    <time class="moment-mobile-info" datetime="${moment.date}T${moment.time}">
+      <span>${formatDate(moment.date)}</span>
+      <span>${weekday}</span>
+      <span>${escapeHtml(moment.time)}</span>
+      ${weather}
     </time>
   `;
 }
@@ -2252,6 +2274,7 @@ function renderMoments() {
                 return `
                   <article class="moment-item" data-moment-id="${moment.id}" data-moment-date="${moment.date}">
                     ${renderMomentDateTime(moment)}
+                    ${renderMomentMobileInfo(moment)}
                     <div class="moment-body">
                       ${moment.text ? `<p class="moment-text">${escapeHtml(moment.text).replace(/\n/g, "<br>")}</p>` : ""}
                       ${renderMomentPhotos(moment)}
