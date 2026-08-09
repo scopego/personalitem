@@ -6094,16 +6094,17 @@ html[data-theme="dark"] .media-filter-panel {
   .site-shell.media-mode .media-search {
     position: fixed;
     z-index: 70;
-    top: calc((var(--header-height) - 2.15rem) / 2);
-    right: calc(var(--page-gutter) + 7.55rem);
-    width: min(44vw, 11.25rem);
-    height: 2.15rem;
-    min-height: 2.15rem;
+    top: calc(var(--header-height) + 0.62rem);
+    left: 50%;
+    right: auto;
+    width: min(calc(100vw - (var(--page-gutter) * 2)), 20rem);
+    height: 2.35rem;
+    min-height: 2.35rem;
     justify-self: auto;
     opacity: 0;
     pointer-events: none;
-    transform: translateX(0.65rem) scaleX(0.86);
-    transform-origin: right center;
+    transform: translateX(-50%) translateY(-0.45rem) scale(0.96);
+    transform-origin: top center;
     transition:
       opacity 160ms ease,
       transform 200ms cubic-bezier(0.2, 1, 0.32, 1);
@@ -6112,7 +6113,7 @@ html[data-theme="dark"] .media-filter-panel {
   body.media-search-open .site-shell.media-mode .media-search {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(0) scaleX(1);
+    transform: translateX(-50%) translateY(0) scale(1);
   }
 
   body.mobile-nav-open .site-shell.media-mode .media-search,
@@ -6122,9 +6123,9 @@ html[data-theme="dark"] .media-filter-panel {
   }
 
   .media-search input {
-    height: 2.15rem;
+    height: 2.35rem;
     font-size: 13px;
-    padding: 0.38rem 2.35rem 0.38rem 0.78rem;
+    padding: 0.44rem 2.45rem 0.44rem 0.9rem;
   }
 
   .media-search button {
@@ -6824,8 +6825,8 @@ html[data-theme="dark"] .media-filter-panel {
     font-size: 17px;
   }
 
-  .media-search {
-    width: min(45vw, 10rem);
+  .site-shell.media-mode .media-search {
+    width: min(calc(100vw - (var(--page-gutter) * 2)), 19rem);
   }
 
   .media-grid {
@@ -6842,8 +6843,8 @@ html[data-theme="dark"] .media-filter-panel {
     width: min(12rem, calc(100vw - (var(--page-gutter) * 2) - 6rem));
   }
 
-  .media-search {
-    width: min(43vw, 9.4rem);
+  .site-shell.media-mode .media-search {
+    width: min(calc(100vw - (var(--page-gutter) * 2)), 18.5rem);
   }
 }
 
@@ -6860,8 +6861,8 @@ html[data-theme="dark"] .media-filter-panel {
     padding: 0.86rem;
   }
 
-  .media-search {
-    width: min(42vw, 9rem);
+  .site-shell.media-mode .media-search {
+    width: min(calc(100vw - (var(--page-gutter) * 2)), 18rem);
   }
 
   .media-search input {
