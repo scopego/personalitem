@@ -1117,12 +1117,19 @@ function setupTrumanReveals(root = document) {
     });
 
     target.textContent = "";
+    let lineDelay = 0;
     lines.forEach((line, index) => {
+      const lineText = line.text.trimEnd();
+      const characterCount = Math.max([...lineText].length, 1);
+      const duration = Math.max(characterCount * 0.06, 0.72);
       const lineNode = document.createElement("span");
-      lineNode.className = "truman-reveal-line";
-      lineNode.style.animationDelay = `${(index * 0.84).toFixed(2)}s`;
-      lineNode.textContent = line.text.trimEnd();
+      lineNode.className = `truman-reveal-line${index === lines.length - 1 ? " is-last-line" : ""}`;
+      lineNode.style.setProperty("--truman-char-count", characterCount);
+      lineNode.style.setProperty("--truman-type-delay", `${lineDelay.toFixed(2)}s`);
+      lineNode.style.setProperty("--truman-type-duration", `${duration.toFixed(2)}s`);
+      lineNode.textContent = lineText;
       target.appendChild(lineNode);
+      lineDelay += duration + 0.12;
     });
     target.dataset.trumanReady = "true";
   });
