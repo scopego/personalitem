@@ -3002,7 +3002,7 @@ function renderMediaShelf() {
                         return `
                         <article class="media-card" data-note-key="${escapeHtml(noteKey)}" data-media-date="${mediaDate}">
                           <div class="media-cover cover-${item.cover}" style="${item.poster ? `--poster: url('${item.poster}')` : ""}">
-                            <button class="media-mobile-detail-trigger" type="button" data-media-expand="${escapeHtml(noteKey)}" aria-label="查看${item.title}短评"></button>
+                            <button class="media-mobile-detail-trigger" type="button" data-media-expand="${escapeHtml(noteKey)}" aria-label="查看${item.title}记录信息"></button>
                             <small class="media-type-pill">◉ ${getMediaTypeLabel(item.type)}</small>
                             <button class="media-note-button ${noteCount ? "has-note" : ""}" type="button" data-note-key="${escapeHtml(noteKey)}" aria-label="查看或给${item.title}留言" title="查看留言">
                               <span aria-hidden="true"></span>
