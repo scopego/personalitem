@@ -6375,8 +6375,8 @@ html[data-theme="dark"] .media-filter-panel {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-column: auto;
     grid-row: auto;
-    flex: 1 1 auto;
-    gap: 0.5rem;
+    flex: 1 1 0;
+    gap: 0.42rem;
     width: auto;
     min-width: 0;
     overflow: visible;
@@ -6396,7 +6396,7 @@ html[data-theme="dark"] .media-filter-panel {
   .calendar-past-months-toggle {
     grid-column: auto;
     grid-row: auto;
-    flex: 0 0 min(5.15rem, 24%);
+    flex: 0 0 min(6.35rem, 31%);
     justify-content: center;
     width: auto;
     max-width: 100%;
