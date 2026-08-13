@@ -1203,7 +1203,7 @@ function getCalendarEmptyRecordMessage(dateKey) {
 const trumanGreetingText = "Good Morning, and in case I don't see you, good afternoon, good evening, and good night!";
 
 function renderTrumanGreeting() {
-  return `<span class="truman-reveal-text">${escapeHtml(trumanGreetingText)}</span>`;
+  return `<span class="truman-reveal-text" lang="en">${escapeHtml(trumanGreetingText)}</span>`;
 }
 
 function setupTrumanReveals(root = document) {
@@ -1213,34 +1213,46 @@ function setupTrumanReveals(root = document) {
     const currentWidth = Math.round(target.getBoundingClientRect().width);
     if (target.dataset.trumanReady === "true" && target.dataset.trumanWidth === String(currentWidth)) return;
 
-    const tokens = text.match(/\S+\s*/g) || [text];
     target.dataset.trumanReady = "false";
     target.dataset.trumanWidth = String(currentWidth);
-    target.textContent = "";
-
-    const tokenNodes = tokens.map((token) => {
-      const node = document.createElement("span");
-      node.className = "truman-measure-token";
-      node.textContent = token;
-      target.appendChild(node);
-      return node;
-    });
+    target.textContent = text;
 
     const lines = [];
-    tokenNodes.forEach((node) => {
-      const rect = node.getBoundingClientRect();
+    const textNode = target.firstChild;
+    [...text].forEach((character, index) => {
+      if (!textNode) return;
+      const range = document.createRange();
+      range.setStart(textNode, index);
+      range.setEnd(textNode, index + 1);
+      const rect = range.getClientRects()[0];
+      range.detach();
       const lastLine = lines[lines.length - 1];
+      if (!rect) {
+        if (lastLine) {
+          lastLine.text += character;
+          lastLine.end = index;
+        }
+        return;
+      }
+
       if (lastLine && Math.abs(lastLine.top - rect.top) <= 2) {
-        lastLine.text += node.textContent;
+        lastLine.text += character;
+        lastLine.end = index;
       } else {
-        lines.push({ top: rect.top, text: node.textContent });
+        lines.push({ top: rect.top, text: character, end: index });
       }
     });
 
     target.textContent = "";
     let lineDelay = 0;
     lines.forEach((line, index) => {
-      const lineText = line.text.trimEnd();
+      const nextLine = lines[index + 1];
+      let lineText = line.text.trimEnd();
+      const trimmedEnd = line.end - (line.text.length - line.text.trimEnd().length);
+      const shouldHyphenate = nextLine &&
+        /[A-Za-z]/.test(text[trimmedEnd] || "") &&
+        /[A-Za-z]/.test(text[trimmedEnd + 1] || "");
+      if (shouldHyphenate) lineText += "-";
       const characterCount = Math.max([...lineText].length, 1);
       const duration = Math.max(characterCount * 0.06, 0.72);
       const lineNode = document.createElement("span");

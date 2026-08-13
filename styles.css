@@ -2978,6 +2978,10 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 
 .truman-reveal-text {
   display: block;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .truman-reveal-text:not([data-truman-ready="true"]) {
@@ -3021,6 +3025,8 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   overflow: hidden;
   border-right: 1px solid transparent;
   color: var(--truman-text, var(--muted));
+  hyphens: auto;
+  -webkit-hyphens: auto;
   white-space: nowrap;
   animation:
     truman-typewriter var(--truman-type-duration, 1.2s) steps(var(--truman-char-count, 20), end) var(--truman-type-delay, 0s) forwards,
