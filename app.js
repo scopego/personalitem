@@ -2565,6 +2565,35 @@ function setupCalendarDayPickers() {
   });
 }
 
+function getCalendarDayScrollerKey(scroller) {
+  const firstDay = scroller?.querySelector("[data-calendar-date]");
+  return firstDay?.dataset.calendarDate?.slice(0, 7) || "";
+}
+
+function captureCalendarDayScrollPositions() {
+  if (!isMobileCalendarLayout() || !yearCalendar) return new Map();
+
+  return new Map(
+    [...yearCalendar.querySelectorAll(".calendar-days")]
+      .map((scroller) => [getCalendarDayScrollerKey(scroller), scroller.scrollLeft])
+      .filter(([key]) => key),
+  );
+}
+
+function restoreCalendarDayScrollPositions(positions) {
+  if (!positions?.size || !yearCalendar) return;
+
+  yearCalendar.querySelectorAll(".calendar-days").forEach((scroller) => {
+    const key = getCalendarDayScrollerKey(scroller);
+    if (!key || !positions.has(key)) return;
+    scroller.scrollLeft = positions.get(key);
+    updateMobilePickerFeedback(scroller, ".calendar-day", {
+      minOpacity: 0.76,
+      minScale: 0.985,
+    });
+  });
+}
+
 function renderCalendarInfoToggles() {
   if (!calendarInfoToggles) return;
 
@@ -4163,6 +4192,7 @@ yearCalendar?.addEventListener("click", (event) => {
   if (!dayButton) return;
   const dateKey = dayButton.dataset.calendarDate;
   const dayTopBeforeRender = dayButton.getBoundingClientRect().top;
+  const dayScrollPositions = captureCalendarDayScrollPositions();
   dayButton.blur();
   const records = getCalendarRecordMap().get(dateKey) || [];
   const dayData = getCalendarDateData(dateKey, records);
@@ -4180,7 +4210,10 @@ yearCalendar?.addEventListener("click", (event) => {
 
   activeCalendarDate = activeCalendarDate === dateKey ? "" : dateKey;
   renderYearCalendar();
-  if (isMobileCalendarLayout()) return;
+  if (isMobileCalendarLayout()) {
+    requestAnimationFrame(() => restoreCalendarDayScrollPositions(dayScrollPositions));
+    return;
+  }
 
   const keepDayInPlace = () => {
     const renderedDay = yearCalendar?.querySelector(`[data-calendar-date="${dateKey}"]`);
