@@ -5822,13 +5822,17 @@ html[data-theme="dark"] .media-filter-panel {
   }
 
   .brand .brand-title {
+    align-items: center;
     font-size: 0;
+    line-height: 1;
   }
 
   .brand .brand-title::after {
     content: attr(data-mobile-label);
     font-size: 18px;
     letter-spacing: 0.03em;
+    line-height: 1;
+    transform: translateY(1px);
   }
 
   .right-panel {

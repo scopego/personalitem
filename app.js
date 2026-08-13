@@ -2658,6 +2658,45 @@ function renderCalendarPastMonthsToggle(hiddenMonthCount) {
   `;
 }
 
+function setCalendarInfoMode(mode) {
+  if (mode === "holiday") {
+    calendarHolidayNamesOpen = !calendarHolidayNamesOpen;
+    if (calendarHolidayNamesOpen) {
+      calendarLunarNamesOpen = false;
+      calendarScheduleOpen = false;
+    }
+    return;
+  }
+
+  if (mode === "solar") {
+    calendarSolarTermNamesOpen = !calendarSolarTermNamesOpen;
+    if (calendarSolarTermNamesOpen) {
+      calendarLunarNamesOpen = false;
+      calendarScheduleOpen = false;
+    }
+    return;
+  }
+
+  if (mode === "lunar") {
+    calendarLunarNamesOpen = !calendarLunarNamesOpen;
+    if (calendarLunarNamesOpen) {
+      calendarHolidayNamesOpen = false;
+      calendarSolarTermNamesOpen = false;
+      calendarScheduleOpen = false;
+    }
+    return;
+  }
+
+  if (mode === "schedule") {
+    calendarScheduleOpen = !calendarScheduleOpen;
+    if (calendarScheduleOpen) {
+      calendarHolidayNamesOpen = false;
+      calendarSolarTermNamesOpen = false;
+      calendarLunarNamesOpen = false;
+    }
+  }
+}
+
 function getCalendarExpandedNames(dayData) {
   if (calendarScheduleOpen) {
     const label = getCalendarCompactDateLabel(dayData.schedules[0]?.shift || "");
@@ -4208,40 +4247,7 @@ calendarInfoToggles?.addEventListener("click", (event) => {
   const toggle = event.target.closest("[data-calendar-info-toggle]");
   if (!toggle) return;
 
-  if (toggle.dataset.calendarInfoToggle === "holiday") {
-    calendarHolidayNamesOpen = !calendarHolidayNamesOpen;
-    if (calendarHolidayNamesOpen) {
-      calendarLunarNamesOpen = false;
-      calendarScheduleOpen = false;
-    }
-  }
-
-  if (toggle.dataset.calendarInfoToggle === "solar") {
-    calendarSolarTermNamesOpen = !calendarSolarTermNamesOpen;
-    if (calendarSolarTermNamesOpen) {
-      calendarLunarNamesOpen = false;
-      calendarScheduleOpen = false;
-    }
-  }
-
-  if (toggle.dataset.calendarInfoToggle === "lunar") {
-    calendarLunarNamesOpen = !calendarLunarNamesOpen;
-    if (calendarLunarNamesOpen) {
-      calendarHolidayNamesOpen = false;
-      calendarSolarTermNamesOpen = false;
-      calendarScheduleOpen = false;
-    }
-  }
-
-  if (toggle.dataset.calendarInfoToggle === "schedule") {
-    calendarScheduleOpen = !calendarScheduleOpen;
-    if (calendarScheduleOpen) {
-      calendarHolidayNamesOpen = false;
-      calendarSolarTermNamesOpen = false;
-      calendarLunarNamesOpen = false;
-    }
-  }
-
+  setCalendarInfoMode(toggle.dataset.calendarInfoToggle);
   renderYearCalendar();
 });
 
