@@ -5588,6 +5588,53 @@ html[data-theme="dark"] .media-filter-panel {
     --mobile-calendar-weekday-size: 12px;
   }
 
+  html:not([data-theme="dark"]) {
+    --color-bg: #ffffff;
+    --color-surface: #f7f8fa;
+    --color-surface-elevated: #ffffff;
+    --color-text-primary: #111827;
+    --color-text-body: rgba(17, 24, 39, 0.72);
+    --color-text-secondary: var(--color-text-body);
+    --color-text-muted: rgba(17, 24, 39, 0.46);
+    --color-border: rgba(17, 24, 39, 0.11);
+    --color-divider: rgba(17, 24, 39, 0.08);
+    --color-accent: #2563eb;
+    --color-accent-hover: #1d4ed8;
+    --color-accent-active: #1e40af;
+    --color-accent-soft: rgba(37, 99, 235, 0.08);
+    --color-accent-border: rgba(37, 99, 235, 0.22);
+    --color-accent-focus: rgba(37, 99, 235, 0.18);
+    --color-accent-contrast: #ffffff;
+    --color-caret: #2563eb;
+    --color-shadow: rgba(15, 23, 42, 0.08);
+    --color-overlay: rgba(15, 23, 42, 0.42);
+    --color-input-bg: #ffffff;
+    --color-card-bg: #ffffff;
+    --color-tooltip-bg: #ffffff;
+    --color-nav-bg: rgba(255, 255, 255, 0.86);
+    --color-page-bg: #ffffff;
+    --bg: var(--color-bg);
+    --paper: var(--color-surface);
+    --ink: var(--color-text-primary);
+    --body: var(--color-text-secondary);
+    --muted: var(--color-text-muted);
+    --accent-50: rgba(37, 99, 235, 0.06);
+    --accent-100: var(--color-accent-soft);
+    --accent-200: var(--color-accent-border);
+    --accent-300: var(--color-accent);
+    --accent-400: var(--color-accent-hover);
+    --accent-500: var(--color-accent);
+    --accent-600: var(--color-accent-hover);
+    --accent-700: var(--color-accent-active);
+    --accent: var(--accent-500);
+    --accent-rgb: 37, 99, 235;
+    --accent-soft: var(--color-accent-soft);
+    --tag-bg: rgba(247, 248, 250, 0.86);
+    --panel-bg: var(--color-card-bg);
+    --shadow: 0 18px 44px var(--color-shadow);
+    --image-shadow: 0 18px 40px var(--color-shadow);
+  }
+
   body {
     min-width: 0;
   }

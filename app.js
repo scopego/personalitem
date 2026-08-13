@@ -2775,21 +2775,6 @@ function renderCalendarDayDetail(dayData) {
                   `
                   : ""
               }
-              ${scheduleOnly
-                ? ""
-                : dayData.schedules
-                  .map(
-                    (item) => `
-                      <div class="calendar-date-note-item">
-                        <div class="calendar-date-note-title">
-                          <strong>${escapeHtml(item.shift)}</strong>
-                        </div>
-                        ${item.note ? `<span>${escapeHtml(item.note)}</span>` : ""}
-                        <em>排班</em>
-                      </div>
-                    `,
-                  )
-                  .join("")}
             </div>
           `
           : ""
