@@ -80,7 +80,8 @@ async function queryOptionalDataSource(sourceId) {
 
   try {
     return await queryDataSource(sourceId);
-  } catch {
+  } catch (error) {
+    console.warn(`Optional Notion source unavailable: ${sourceId}. ${error.message}`);
     return [];
   }
 }
@@ -227,16 +228,16 @@ function mapMedia(page) {
 }
 
 function mapSchedule(page) {
-  const date = normalizeDateOnly(getDateStart(page, "Date") || getDateStart(page, "SortDate") || "");
-  const shift = getSelectName(page, "Shift") || getRichText(page, "Shift") || getTitle(page, "Name");
-  const visible = getCheckbox(page, "Visible");
-  if (!date || !shift || visible !== true) return null;
+  const date = normalizeDateOnly(getFirstDateStart(page, ["Date", "日期", "SortDate", "PublishedAt"]) || "");
+  const shift = getFirstOptionText(page, ["Shift", "班次", "排班", "Name", "Title"]);
+  const visible = getFirstCheckbox(page, ["Visible", "显示", "Show", "Public"]);
+  if (!date || !shift || visible === false) return null;
 
   return {
     id: page.id,
     date,
     shift,
-    note: getRichText(page, "Note"),
+    note: getFirstRichText(page, ["Note", "备注", "说明"]),
   };
 }
 
@@ -339,13 +340,28 @@ function getTitle(page, name) {
   return (property?.title || []).map((item) => item.plain_text || "").join("").trim();
 }
 
+function getFirstTitleByNames(page, names) {
+  return names.map((name) => getTitle(page, name)).find(Boolean) || "";
+}
+
 function getRichText(page, name) {
   const property = getProperty(page, name);
   return (property?.rich_text || []).map((item) => item.plain_text || "").join("").trim();
 }
 
+function getFirstRichText(page, names) {
+  return names.map((name) => getRichText(page, name)).find(Boolean) || "";
+}
+
 function getSelectName(page, name) {
-  return getProperty(page, name)?.select?.name || "";
+  const property = getProperty(page, name);
+  return property?.select?.name || property?.status?.name || "";
+}
+
+function getFirstOptionText(page, names) {
+  return names
+    .map((name) => getSelectName(page, name) || getRichText(page, name) || getTitle(page, name))
+    .find(Boolean) || getFirstTitleByNames(page, names);
 }
 
 function getNumber(page, name) {
@@ -358,12 +374,24 @@ function getCheckbox(page, name) {
   return Boolean(property.checkbox);
 }
 
+function getFirstCheckbox(page, names) {
+  for (const name of names) {
+    const value = getCheckbox(page, name);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
 function getUrl(page, name) {
   return getProperty(page, name)?.url || "";
 }
 
 function getDateStart(page, name) {
   return getProperty(page, name)?.date?.start || "";
+}
+
+function getFirstDateStart(page, names) {
+  return names.map((name) => getDateStart(page, name)).find(Boolean) || "";
 }
 
 function normalizeDateOnly(value) {
