@@ -2727,13 +2727,20 @@ function renderCalendarFestivalCompletion(dateKey, name) {
 
 function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
+  if (!dayData.records.length) {
+    return `
+      <div class="calendar-day-detail">
+        ${renderCalendarRecordSummary(dayData)}
+      </div>
+    `;
+  }
+
   const scheduleOnly = calendarScheduleOpen;
   const hasDateNotes = !scheduleOnly && (dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length);
-  const showDetailHeading = hasDateNotes || dayData.records.length;
 
   return `
     <div class="calendar-day-detail">
-      ${showDetailHeading ? `<p>${formatDate(dayData.date)} · 星期${getCalendarWeekday(new Date(`${dayData.date}T00:00:00`))}</p>` : ""}
+      <p>${formatDate(dayData.date)} · 星期${getCalendarWeekday(new Date(`${dayData.date}T00:00:00`))}</p>
       ${
         hasDateNotes
           ? `
