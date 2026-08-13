@@ -6840,7 +6840,10 @@ html[data-theme="dark"] .media-filter-panel {
 
   .calendar-info-toggle.active,
   .calendar-info-toggle.active:hover,
-  .calendar-info-toggle.active:focus-visible {
+  .calendar-info-toggle.active:focus-visible,
+  html:not([data-theme="dark"]) .calendar-info-toggle.active,
+  html:not([data-theme="dark"]) .calendar-info-toggle.active:hover,
+  html:not([data-theme="dark"]) .calendar-info-toggle.active:focus-visible {
     background: var(--accent-soft);
     border-color: var(--color-accent-border);
     color: var(--accent-700);
@@ -6848,7 +6851,10 @@ html[data-theme="dark"] .media-filter-panel {
 
   .calendar-info-toggle.active span,
   .calendar-info-toggle.active:hover span,
-  .calendar-info-toggle.active:focus-visible span {
+  .calendar-info-toggle.active:focus-visible span,
+  html:not([data-theme="dark"]) .calendar-info-toggle.active span,
+  html:not([data-theme="dark"]) .calendar-info-toggle.active:hover span,
+  html:not([data-theme="dark"]) .calendar-info-toggle.active:focus-visible span {
     opacity: 1;
   }
 
