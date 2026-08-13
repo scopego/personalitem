@@ -2277,7 +2277,7 @@ function renderMoments() {
                     <div class="moment-body">
                       ${momentText || fallbackText ? `
                         <div class="moment-text-wrap">
-                          <p class="moment-text${fallbackText ? " moment-text-fallback" : ""}">${escapeHtml(momentText || fallbackText).replace(/\n/g, "<br>")}</p>
+                          <p class="moment-text is-collapsible${fallbackText ? " moment-text-fallback" : ""}">${escapeHtml(momentText || fallbackText).replace(/\n/g, "<br>")}</p>
                           <button class="moment-text-toggle" type="button" data-moment-text-toggle aria-expanded="false" hidden>展开</button>
                         </div>
                       ` : ""}
@@ -2353,26 +2353,33 @@ function setupMomentTextClamp() {
     const wrap = text.closest(".moment-text-wrap");
     const button = wrap?.querySelector("[data-moment-text-toggle]");
     if (!button) return;
-    const wasExpanded = text.classList.contains("is-expanded");
+    const wasExpanded = text.classList.contains("is-expanded") || wrap?.classList.contains("is-expanded");
 
-    text.classList.remove("is-collapsible", "is-expanded");
-    wrap?.classList.remove("is-expanded");
     text.style.removeProperty("--moment-text-full-height");
     button.hidden = true;
     button.textContent = "展开";
     button.setAttribute("aria-expanded", "false");
 
-    if (!isMobile) return;
+    if (!isMobile) {
+      text.classList.remove("is-collapsible", "is-expanded");
+      wrap?.classList.remove("is-expanded");
+      return;
+    }
+
+    text.classList.add("is-collapsible");
+    text.classList.toggle("is-expanded", wasExpanded);
+    wrap?.classList.toggle("is-expanded", wasExpanded);
 
     const lineHeight = Number.parseFloat(window.getComputedStyle(text).lineHeight) || 24;
     const collapsedHeight = lineHeight * 4;
     const fullHeight = text.scrollHeight;
-    if (fullHeight <= collapsedHeight + 2) return;
+    if (fullHeight <= collapsedHeight + 2) {
+      text.classList.remove("is-collapsible", "is-expanded");
+      wrap?.classList.remove("is-expanded");
+      return;
+    }
 
     text.style.setProperty("--moment-text-full-height", `${fullHeight}px`);
-    text.classList.add("is-collapsible");
-    text.classList.toggle("is-expanded", wasExpanded);
-    wrap?.classList.toggle("is-expanded", wasExpanded);
     button.hidden = false;
     button.textContent = wasExpanded ? "收起" : "展开";
     button.setAttribute("aria-expanded", String(wasExpanded));
