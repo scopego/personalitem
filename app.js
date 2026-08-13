@@ -2595,6 +2595,27 @@ function restoreCalendarDayScrollPositions(positions) {
   });
 }
 
+function scrollCalendarDayStripToWeek(dateKey) {
+  const dayButton = yearCalendar?.querySelector(`[data-calendar-date="${dateKey}"]`);
+  const scroller = dayButton?.closest(".calendar-days");
+  if (!dayButton || !scroller) return;
+
+  const date = new Date(`${dateKey}T00:00:00`);
+  const weekStartDay = Math.max(1, date.getDate() - date.getDay());
+  const monthKey = dateKey.slice(0, 8);
+  const weekStartButton = scroller.querySelector(`[data-calendar-date="${monthKey}${String(weekStartDay).padStart(2, "0")}"]`);
+  const targetButton = weekStartButton || dayButton;
+
+  scroller.scrollTo({
+    left: Math.max(0, targetButton.offsetLeft),
+    behavior: "auto",
+  });
+  updateMobilePickerFeedback(scroller, ".calendar-day", {
+    minOpacity: 0.76,
+    minScale: 0.985,
+  });
+}
+
 function renderCalendarInfoToggles() {
   if (!calendarInfoToggles) return;
 
@@ -2707,9 +2728,7 @@ function renderCalendarFestivalCompletion(dateKey, name) {
 function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
   const scheduleOnly = calendarScheduleOpen;
-  const hasDateNotes = scheduleOnly
-    ? dayData.schedules.length
-    : dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length;
+  const hasDateNotes = !scheduleOnly && (dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length);
 
   return `
     <div class="calendar-day-detail">
@@ -2756,19 +2775,21 @@ function renderCalendarDayDetail(dayData) {
                   `
                   : ""
               }
-              ${dayData.schedules
-                .map(
-                  (item) => `
-                    <div class="calendar-date-note-item">
-                      <div class="calendar-date-note-title">
-                        <strong>${escapeHtml(item.shift)}</strong>
+              ${scheduleOnly
+                ? ""
+                : dayData.schedules
+                  .map(
+                    (item) => `
+                      <div class="calendar-date-note-item">
+                        <div class="calendar-date-note-title">
+                          <strong>${escapeHtml(item.shift)}</strong>
+                        </div>
+                        ${item.note ? `<span>${escapeHtml(item.note)}</span>` : ""}
+                        <em>排班</em>
                       </div>
-                      ${item.note ? `<span>${escapeHtml(item.note)}</span>` : ""}
-                      <em>排班</em>
-                    </div>
-                  `,
-                )
-                .join("")}
+                    `,
+                  )
+                  .join("")}
             </div>
           `
           : ""
@@ -3824,10 +3845,7 @@ function jumpCalendarToTodayInstant() {
     const todayButton = yearCalendar?.querySelector(`[data-calendar-date="${todayKey}"]`);
     const monthSection = todayButton?.closest(".calendar-month");
     scrollElementBelowNav(monthSection);
-    todayButton?.closest(".calendar-days")?.scrollTo({
-      left: Math.max(0, todayButton.offsetLeft - 16),
-      behavior: "auto",
-    });
+    scrollCalendarDayStripToWeek(todayKey);
   });
 }
 
