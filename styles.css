@@ -6817,13 +6817,15 @@ html[data-theme="dark"] .media-filter-panel {
     color: var(--accent);
   }
 
-  html:not([data-theme="dark"]) .calendar-info-toggle {
-    border-color: var(--color-border);
-    background: var(--color-surface);
+  html:not([data-theme="dark"]) .calendar-info-toggle,
+  html:not([data-theme="dark"]) .calendar-past-months-toggle:not(.active) {
+    border-color: rgba(var(--accent-rgb), 0.18);
+    background: transparent;
     color: var(--color-text-body);
   }
 
-  html:not([data-theme="dark"]) .calendar-info-toggle span {
+  html:not([data-theme="dark"]) .calendar-info-toggle span,
+  html:not([data-theme="dark"]) .calendar-past-months-toggle:not(.active) span {
     opacity: 0.86;
   }
 
@@ -6848,9 +6850,9 @@ html[data-theme="dark"] .media-filter-panel {
 
   .calendar-past-months-toggle:hover,
   .calendar-past-months-toggle:focus-visible {
-    border-color: var(--color-accent-border);
+    border-color: rgba(var(--accent-rgb), 0.18);
     background: transparent;
-    color: var(--accent);
+    color: var(--color-text-body);
   }
 
   .calendar-past-months-toggle.active,
