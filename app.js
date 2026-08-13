@@ -2638,6 +2638,11 @@ function renderCalendarPastMonthsToggle(hiddenMonthCount) {
 }
 
 function getCalendarExpandedNames(dayData) {
+  if (calendarScheduleOpen) {
+    const label = getCalendarCompactDateLabel(dayData.schedules[0]?.shift || "");
+    return label ? [label] : [];
+  }
+
   if (calendarLunarNamesOpen) {
     const label = getCalendarCompactDateLabel(dayData.lunar?.displayName || dayData.lunar?.fullName || "");
     return label ? [label] : [];
@@ -2655,16 +2660,16 @@ function getCalendarExpandedNames(dayData) {
     if (label) labels.push(label);
   }
 
-  if (calendarScheduleOpen && dayData.schedules.length) {
-    const label = getCalendarCompactDateLabel(dayData.schedules[0].shift);
-    if (label && !labels.includes(label)) labels.push(label);
-  }
-
   return labels;
 }
 
 function getCalendarDayTitle(dateKey, records) {
   const dayData = getCalendarDateData(dateKey, records);
+  if (calendarScheduleOpen) {
+    return dayData.schedules
+      .map((item) => `排班：${item.shift}${item.note ? ` · ${item.note}` : ""}`)
+      .join("\n");
+  }
   const surpriseTitle = getCalendarSurpriseTitle(dayData);
   if (surpriseTitle) return surpriseTitle;
   const summary = getCalendarDateSummary(dayData);
@@ -2701,7 +2706,10 @@ function renderCalendarFestivalCompletion(dateKey, name) {
 
 function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
-  const hasDateNotes = dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length;
+  const scheduleOnly = calendarScheduleOpen;
+  const hasDateNotes = scheduleOnly
+    ? dayData.schedules.length
+    : dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length;
 
   return `
     <div class="calendar-day-detail">
@@ -2710,29 +2718,31 @@ function renderCalendarDayDetail(dayData) {
         hasDateNotes
           ? `
             <div class="calendar-date-notes">
-              ${dayData.festivals
-                .map(
-                  (festival) => `
-                    <div class="calendar-date-note-item">
-                      <div class="calendar-date-note-title">
-                        <strong>${festival.name}</strong>
-                        ${renderCalendarFestivalCompletion(dayData.date, festival.name)}
+              ${scheduleOnly
+                ? ""
+                : dayData.festivals
+                  .map(
+                    (festival) => `
+                      <div class="calendar-date-note-item">
+                        <div class="calendar-date-note-title">
+                          <strong>${festival.name}</strong>
+                          ${renderCalendarFestivalCompletion(dayData.date, festival.name)}
+                        </div>
+                        ${festival.lunar ? `<span>${festival.lunar}</span>` : ""}
+                        ${getCalendarFestivalActivity(festival.name) ? `<span class="calendar-date-activity">${escapeHtml(getCalendarFestivalActivity(festival.name))}</span>` : ""}
+                        <em>${[
+                          festival.types.includes("lunar-festival") ? "传统节日" : "",
+                          festival.types.includes("fixed-festival") ? "节日" : "",
+                          festival.types.includes("public-holiday") ? "法定节假日" : "",
+                          festival.types.includes("adjusted-workday") ? "调休上班" : "",
+                          dayData.hasSameSolarFestival && dayData.solarTerm?.name === festival.name ? "二十四节气" : "",
+                        ].filter(Boolean).join(" · ")}</em>
                       </div>
-                      ${festival.lunar ? `<span>${festival.lunar}</span>` : ""}
-                      ${getCalendarFestivalActivity(festival.name) ? `<span class="calendar-date-activity">${escapeHtml(getCalendarFestivalActivity(festival.name))}</span>` : ""}
-                      <em>${[
-                        festival.types.includes("lunar-festival") ? "传统节日" : "",
-                        festival.types.includes("fixed-festival") ? "节日" : "",
-                        festival.types.includes("public-holiday") ? "法定节假日" : "",
-                        festival.types.includes("adjusted-workday") ? "调休上班" : "",
-                        dayData.hasSameSolarFestival && dayData.solarTerm?.name === festival.name ? "二十四节气" : "",
-                      ].filter(Boolean).join(" · ")}</em>
-                    </div>
-                  `,
-                )
-                .join("")}
+                    `,
+                  )
+                  .join("")}
               ${
-                dayData.solarTerm && !dayData.hasSameSolarFestival
+                !scheduleOnly && dayData.solarTerm && !dayData.hasSameSolarFestival
                   ? `
                     <div class="calendar-date-note-item">
                       <div class="calendar-date-note-title">
@@ -2809,10 +2819,11 @@ function renderYearCalendar() {
         const level = Math.min(records.length, 3);
         const dayData = getCalendarDateData(dateKey, records);
         const dayTitle = getCalendarDayTitle(dateKey, records);
-        const hasEmojiBurst = getCalendarFestivalEmojis(dayData).length > 0;
+        const showCalendarDateInfo = !calendarScheduleOpen;
+        const hasEmojiBurst = showCalendarDateInfo && getCalendarFestivalEmojis(dayData).length > 0;
         const hasCompletedFestival = isCalendarDayFestivalCompleted(dayData);
         const isPast = date < todayDate;
-        const markerClass = calendarLunarNamesOpen
+        const markerClass = calendarLunarNamesOpen || !showCalendarDateInfo
           ? ""
           : dayData.hasHoliday && dayData.hasSolarTerm
             ? "is-combo"
@@ -2823,7 +2834,7 @@ function renderYearCalendar() {
                 : "";
         const expandedNames = getCalendarExpandedNames(dayData);
         return `
-          <button class="calendar-day ${isPast ? "is-past" : ""} ${date.getDay() === 0 ? "is-sunday" : ""} ${date.getDay() === 0 || date.getDay() === 6 ? "is-weekend" : ""} ${records.length ? `has-record level-${level}` : ""} ${hasEmojiBurst ? "has-calendar-surprise" : ""} ${hasCompletedFestival ? "is-festival-completed" : ""} ${dayData.hasHoliday ? "has-holiday" : ""} ${dayData.hasSolarTerm ? "has-solar-term" : ""} ${calendarLunarNamesOpen ? "is-lunar-mode" : ""} ${expandedNames.length ? "has-expanded-note" : ""} ${dayData.isDayOff ? "is-day-off" : ""} ${dayData.isAdjustedWorkday ? "is-adjusted-workday" : ""} ${dateKey === todayKey ? "is-today" : ""} ${dateKey === activeCalendarDate ? "is-selected" : ""}" type="button" data-calendar-date="${dateKey}" data-tooltip="${escapeHtml(dayTitle)}" aria-label="${dayTitle.replace(/\n/g, " ")}">
+          <button class="calendar-day ${isPast ? "is-past" : ""} ${date.getDay() === 0 ? "is-sunday" : ""} ${date.getDay() === 0 || date.getDay() === 6 ? "is-weekend" : ""} ${records.length ? `has-record level-${level}` : ""} ${hasEmojiBurst ? "has-calendar-surprise" : ""} ${showCalendarDateInfo && hasCompletedFestival ? "is-festival-completed" : ""} ${showCalendarDateInfo && dayData.hasHoliday ? "has-holiday" : ""} ${showCalendarDateInfo && dayData.hasSolarTerm ? "has-solar-term" : ""} ${calendarLunarNamesOpen ? "is-lunar-mode" : ""} ${expandedNames.length ? "has-expanded-note" : ""} ${showCalendarDateInfo && dayData.isDayOff ? "is-day-off" : ""} ${showCalendarDateInfo && dayData.isAdjustedWorkday ? "is-adjusted-workday" : ""} ${dateKey === todayKey ? "is-today" : ""} ${dateKey === activeCalendarDate ? "is-selected" : ""}" type="button" data-calendar-date="${dateKey}" data-tooltip="${escapeHtml(dayTitle)}" aria-label="${dayTitle.replace(/\n/g, " ")}">
             <span>${getCalendarWeekday(date)}</span>
             <strong>${day}</strong>
             <i class="calendar-date-marks ${markerClass}" aria-hidden="true"></i>
@@ -4188,12 +4199,18 @@ calendarInfoToggles?.addEventListener("click", (event) => {
 
   if (toggle.dataset.calendarInfoToggle === "holiday") {
     calendarHolidayNamesOpen = !calendarHolidayNamesOpen;
-    if (calendarHolidayNamesOpen) calendarLunarNamesOpen = false;
+    if (calendarHolidayNamesOpen) {
+      calendarLunarNamesOpen = false;
+      calendarScheduleOpen = false;
+    }
   }
 
   if (toggle.dataset.calendarInfoToggle === "solar") {
     calendarSolarTermNamesOpen = !calendarSolarTermNamesOpen;
-    if (calendarSolarTermNamesOpen) calendarLunarNamesOpen = false;
+    if (calendarSolarTermNamesOpen) {
+      calendarLunarNamesOpen = false;
+      calendarScheduleOpen = false;
+    }
   }
 
   if (toggle.dataset.calendarInfoToggle === "lunar") {
@@ -4201,11 +4218,17 @@ calendarInfoToggles?.addEventListener("click", (event) => {
     if (calendarLunarNamesOpen) {
       calendarHolidayNamesOpen = false;
       calendarSolarTermNamesOpen = false;
+      calendarScheduleOpen = false;
     }
   }
 
   if (toggle.dataset.calendarInfoToggle === "schedule") {
     calendarScheduleOpen = !calendarScheduleOpen;
+    if (calendarScheduleOpen) {
+      calendarHolidayNamesOpen = false;
+      calendarSolarTermNamesOpen = false;
+      calendarLunarNamesOpen = false;
+    }
   }
 
   renderYearCalendar();
