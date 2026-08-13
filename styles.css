@@ -6817,6 +6817,16 @@ html[data-theme="dark"] .media-filter-panel {
     color: var(--accent);
   }
 
+  html:not([data-theme="dark"]) .calendar-info-toggle {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-body);
+  }
+
+  html:not([data-theme="dark"]) .calendar-info-toggle span {
+    opacity: 0.86;
+  }
+
   .calendar-info-toggle:hover span,
   .calendar-info-toggle:focus-visible span {
     opacity: 0.72;
@@ -6826,6 +6836,7 @@ html[data-theme="dark"] .media-filter-panel {
   .calendar-info-toggle.active:hover,
   .calendar-info-toggle.active:focus-visible {
     background: var(--accent-soft);
+    border-color: var(--color-accent-border);
     color: var(--accent-700);
   }
 

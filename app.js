@@ -2729,10 +2729,11 @@ function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
   const scheduleOnly = calendarScheduleOpen;
   const hasDateNotes = !scheduleOnly && (dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length);
+  const showDetailHeading = hasDateNotes || dayData.records.length;
 
   return `
     <div class="calendar-day-detail">
-      <p>${formatDate(dayData.date)} · 星期${getCalendarWeekday(new Date(`${dayData.date}T00:00:00`))}</p>
+      ${showDetailHeading ? `<p>${formatDate(dayData.date)} · 星期${getCalendarWeekday(new Date(`${dayData.date}T00:00:00`))}</p>` : ""}
       ${
         hasDateNotes
           ? `
