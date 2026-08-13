@@ -4212,11 +4212,6 @@ yearCalendar?.addEventListener("click", (event) => {
   renderYearCalendar();
   if (isMobileCalendarLayout()) {
     restoreCalendarDayScrollPositions(dayScrollPositions);
-    const renderedDay = yearCalendar?.querySelector(`[data-calendar-date="${dateKey}"]`);
-    if (!renderedDay) return;
-    const dayTopAfterRender = renderedDay.getBoundingClientRect().top;
-    const delta = dayTopAfterRender - dayTopBeforeRender;
-    if (Math.abs(delta) > 0.5) window.scrollBy({ top: delta, behavior: "auto" });
     return;
   }
 
