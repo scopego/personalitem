@@ -5779,7 +5779,7 @@ html[data-theme="dark"] .media-filter-panel {
   }
 
   .brand .brand-title::after {
-    content: "此时此刻";
+    content: attr(data-mobile-label);
     font-size: 18px;
     letter-spacing: 0.03em;
   }

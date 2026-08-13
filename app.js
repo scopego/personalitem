@@ -474,6 +474,7 @@ let activeMomentStatusItem = null;
 let momentTouchStartX = 0;
 let momentViewTouchStartX = 0;
 let momentViewTouchStartY = 0;
+let mobileBrandTimeTimer = 0;
 let activeCalendarYear = getDefaultCalendarYear();
 let calendarYearsOpen = false;
 let activeCalendarDate = "";
@@ -3546,6 +3547,42 @@ function initAnimatedTitle() {
   title.addEventListener("blur", resetChars, true);
 }
 
+function formatBeijingTimeLabel(date = new Date()) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "Asia/Shanghai",
+  }).format(date);
+}
+
+function updateMobileBrandTime() {
+  const title = document.querySelector("[data-animated-title]");
+  if (!title) return;
+  title.dataset.mobileLabel = formatBeijingTimeLabel();
+}
+
+function initMobileBrandTime() {
+  const scheduleNextUpdate = () => {
+    window.clearTimeout(mobileBrandTimeTimer);
+    const now = new Date();
+    const delay = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds()) + 20;
+    mobileBrandTimeTimer = window.setTimeout(() => {
+      updateMobileBrandTime();
+      scheduleNextUpdate();
+    }, delay);
+  };
+
+  updateMobileBrandTime();
+  scheduleNextUpdate();
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      updateMobileBrandTime();
+      scheduleNextUpdate();
+    }
+  });
+}
+
 function renderAll() {
   renderTags();
   renderMediaTypeTabs();
@@ -3761,6 +3798,7 @@ function setMobileMenu(open) {
 }
 
 function jumpCalendarToTodayInstant() {
+  updateMobileBrandTime();
   const today = getBeijingToday();
   const todayKey = formatCalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
   activeCalendarYear = today.getFullYear();
@@ -4521,6 +4559,7 @@ async function initApp() {
   renderWhyQuestion();
   renderAboutVersion();
   initAnimatedTitle();
+  initMobileBrandTime();
   initCustomCursor();
   document.documentElement.classList.remove("app-booting");
   document.documentElement.classList.add("app-ready");
