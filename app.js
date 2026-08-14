@@ -2939,6 +2939,7 @@ function renderYearCalendar() {
     .filter(({ month }) => calendarPastMonthsOpen || activeCalendarYear !== currentYear || month >= currentMonth)
     .map(({ monthName, month, monthIndex }) => {
       const daysInMonth = new Date(activeCalendarYear, month, 0).getDate();
+      const monthProgress = getCalendarMonthProgress(activeCalendarYear, month, todayDate, daysInMonth);
       const days = Array.from({ length: daysInMonth }, (_, index) => {
         const day = index + 1;
         const date = new Date(activeCalendarYear, monthIndex, day);
@@ -2976,7 +2977,10 @@ function renderYearCalendar() {
 
       return `
         <section class="calendar-month">
-          <h3>${monthName}</h3>
+          <h3>
+            <span>${monthName}</span>
+            <small>本月已过 ${monthProgress.elapsed}/${monthProgress.total} 天</small>
+          </h3>
           <div class="calendar-days">${days.join("")}</div>
           ${showDetail ? renderCalendarDayDetail(activeDayData) : ""}
         </section>
@@ -2996,6 +3000,23 @@ function renderYearCalendar() {
   );
   setupCalendarDayPickers();
   requestAnimationFrame(() => setupTrumanReveals(yearCalendar));
+}
+
+function getCalendarMonthProgress(year, month, todayDate, daysInMonth) {
+  const currentYear = todayDate.getFullYear();
+  const currentMonth = todayDate.getMonth() + 1;
+  let elapsed = 0;
+
+  if (year < currentYear || (year === currentYear && month < currentMonth)) {
+    elapsed = daysInMonth;
+  } else if (year === currentYear && month === currentMonth) {
+    elapsed = Math.min(todayDate.getDate(), daysInMonth);
+  }
+
+  return {
+    elapsed,
+    total: daysInMonth,
+  };
 }
 
 function formatMomentDateLabel(date) {

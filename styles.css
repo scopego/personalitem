@@ -2625,12 +2625,24 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 }
 
 .calendar-month h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.46rem 0.72rem;
   margin: 0;
   color: var(--ink);
   font-size: var(--module-title-size);
   font-weight: 650;
   letter-spacing: 0.04em;
   line-height: 1.35;
+}
+
+.calendar-month h3 small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.5;
 }
 
 .calendar-days {
@@ -6704,6 +6716,10 @@ html[data-theme="dark"] .media-filter-panel {
   .calendar-month h3 {
     font-size: var(--mobile-calendar-month-size);
     line-height: 1.25;
+  }
+
+  .calendar-month h3 small {
+    font-size: 12px;
   }
 
   .calendar-month {
