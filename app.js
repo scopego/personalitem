@@ -1251,7 +1251,7 @@ function setupTrumanReveals(root = document) {
       lines.length === 1 &&
       currentWidth > 0 &&
       target.scrollWidth > currentWidth + 4;
-    const resolvedLines = measuredAsSingleOverflowLine
+    const resolvedLines = isMobileCalendarLayout() || measuredAsSingleOverflowLine
       ? getTrumanFallbackLines(text, target)
       : lines;
 
@@ -1268,7 +1268,7 @@ function setupTrumanReveals(root = document) {
       const characterCount = Math.max([...lineText].length, 1);
       const duration = Math.max(characterCount * 0.06, 0.72);
       const lineNode = document.createElement("span");
-      lineNode.className = `truman-reveal-line${index === lines.length - 1 ? " is-last-line" : ""}`;
+      lineNode.className = `truman-reveal-line${index === resolvedLines.length - 1 ? " is-last-line" : ""}`;
       lineNode.style.setProperty("--truman-char-count", characterCount);
       lineNode.style.setProperty("--truman-type-delay", `${lineDelay.toFixed(2)}s`);
       lineNode.style.setProperty("--truman-type-duration", `${duration.toFixed(2)}s`);
@@ -1281,7 +1281,7 @@ function setupTrumanReveals(root = document) {
 }
 
 function getTrumanFallbackLines(text, target) {
-  const width = Math.max(target.getBoundingClientRect().width, target.parentElement?.getBoundingClientRect().width || 0, 240);
+  const width = getTrumanLineWidth(target);
   const computedStyle = window.getComputedStyle(target);
   const canvas = getTrumanFallbackLines.canvas || document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -1306,6 +1306,17 @@ function getTrumanFallbackLines(text, target) {
 
   if (line) lines.push({ top: 0, text: line, end: text.length - 1 });
   return lines.length ? lines : [{ top: 0, text, end: text.length - 1 }];
+}
+
+function getTrumanLineWidth(target) {
+  const viewportWidth = Math.max(180, window.innerWidth - 32);
+  const widths = [
+    target.getBoundingClientRect().width,
+    target.parentElement?.getBoundingClientRect().width || 0,
+    viewportWidth,
+  ].filter((width) => width > 40);
+  const measuredWidth = widths.length ? Math.min(...widths) : viewportWidth;
+  return Math.max(180, Math.floor(measuredWidth));
 }
 
 function isFutureCalendarDate(dateKey) {

@@ -3012,11 +3012,16 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   position: relative;
   isolation: isolate;
   display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
   color: var(--truman-text, var(--muted));
 }
 
 .truman-reveal-text {
   display: block;
+  max-width: 100%;
+  min-width: 0;
   hyphens: auto;
   -webkit-hyphens: auto;
   overflow-wrap: normal;
@@ -3060,6 +3065,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   display: block;
   width: fit-content;
   max-width: 100%;
+  min-width: 0;
   max-inline-size: 0;
   overflow: hidden;
   border-right: 1px solid transparent;
@@ -6690,6 +6696,9 @@ html[data-theme="dark"] .media-filter-panel {
 
   .calendar-day-detail {
     margin-top: 0;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .calendar-month h3 {
