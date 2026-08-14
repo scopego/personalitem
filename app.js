@@ -2979,7 +2979,7 @@ function renderYearCalendar() {
         <section class="calendar-month">
           <h3>
             <span>${monthName}</span>
-            <small>本月已过 ${monthProgress.elapsed}/${monthProgress.total} 天</small>
+            <small>本月已过 ${monthProgress.elapsed} / ${monthProgress.total} 天</small>
           </h3>
           <div class="calendar-days">${days.join("")}</div>
           ${showDetail ? renderCalendarDayDetail(activeDayData) : ""}
