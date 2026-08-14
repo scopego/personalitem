@@ -1213,13 +1213,6 @@ function setupTrumanReveals(root = document) {
     const currentWidth = Math.round(target.getBoundingClientRect().width);
     if (target.dataset.trumanReady === "true" && target.dataset.trumanWidth === String(currentWidth)) return;
 
-    if (isMobileCalendarLayout()) {
-      target.dataset.trumanReady = "true";
-      target.dataset.trumanWidth = String(currentWidth);
-      target.textContent = text;
-      return;
-    }
-
     target.dataset.trumanReady = "false";
     target.dataset.trumanWidth = String(currentWidth);
     target.textContent = text;
@@ -1254,10 +1247,18 @@ function setupTrumanReveals(root = document) {
       lines.push({ top: 0, text, end: text.length - 1 });
     }
 
+    const measuredAsSingleOverflowLine =
+      lines.length === 1 &&
+      currentWidth > 0 &&
+      target.scrollWidth > currentWidth + 4;
+    const resolvedLines = measuredAsSingleOverflowLine
+      ? getTrumanFallbackLines(text, target)
+      : lines;
+
     target.textContent = "";
     let lineDelay = 0;
-    lines.forEach((line, index) => {
-      const nextLine = lines[index + 1];
+    resolvedLines.forEach((line, index) => {
+      const nextLine = resolvedLines[index + 1];
       let lineText = line.text.trimEnd();
       const trimmedEnd = line.end - (line.text.length - line.text.trimEnd().length);
       const shouldHyphenate = nextLine &&
@@ -1277,6 +1278,34 @@ function setupTrumanReveals(root = document) {
     });
     target.dataset.trumanReady = "true";
   });
+}
+
+function getTrumanFallbackLines(text, target) {
+  const width = Math.max(target.getBoundingClientRect().width, target.parentElement?.getBoundingClientRect().width || 0, 240);
+  const computedStyle = window.getComputedStyle(target);
+  const canvas = getTrumanFallbackLines.canvas || document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  getTrumanFallbackLines.canvas = canvas;
+  context.font = `${computedStyle.fontStyle} ${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+  const words = text.match(/\S+\s*/g) || [text];
+  const lines = [];
+  let line = "";
+  let end = -1;
+
+  words.forEach((word) => {
+    const candidate = line + word;
+    if (line && context.measureText(candidate.trimEnd()).width > width) {
+      lines.push({ top: 0, text: line, end });
+      line = word;
+    } else {
+      line = candidate;
+    }
+    end += word.length;
+  });
+
+  if (line) lines.push({ top: 0, text: line, end: text.length - 1 });
+  return lines.length ? lines : [{ top: 0, text, end: text.length - 1 }];
 }
 
 function isFutureCalendarDate(dateKey) {
