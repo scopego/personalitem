@@ -1243,6 +1243,10 @@ function setupTrumanReveals(root = document) {
       }
     });
 
+    if (!lines.length) {
+      lines.push({ top: 0, text, end: text.length - 1 });
+    }
+
     target.textContent = "";
     let lineDelay = 0;
     lines.forEach((line, index) => {
@@ -1882,15 +1886,16 @@ function closeMediaNoteModal({ returnFocus = true } = {}) {
 function renderPostContent(blocks = []) {
   return blocks
     .map((block) => {
+      const inlineContent = block.html || escapeHtml(block.text || "");
       if (block.type === "heading") {
         const level = Math.min(Math.max(Number(block.level) || 2, 2), 3);
-        return `<h${level}>${escapeHtml(block.text)}</h${level}>`;
+        return `<h${level}>${inlineContent}</h${level}>`;
       }
       if (block.type === "quote") {
-        return `<blockquote>${escapeHtml(block.text)}</blockquote>`;
+        return `<blockquote>${inlineContent}</blockquote>`;
       }
       if (block.type === "callout") {
-        return `<aside class="article-callout">${block.icon ? `<span aria-hidden="true">${escapeHtml(block.icon)}</span>` : ""}<p>${escapeHtml(block.text)}</p></aside>`;
+        return `<aside class="article-callout">${block.icon ? `<span aria-hidden="true">${escapeHtml(block.icon)}</span>` : ""}<p>${inlineContent}</p></aside>`;
       }
       if (block.type === "code") {
         const language = block.language ? ` data-language="${escapeHtml(block.language)}"` : "";
@@ -1898,13 +1903,21 @@ function renderPostContent(blocks = []) {
       }
       if (block.type === "list") {
         const tag = block.ordered ? "ol" : "ul";
-        return `<${tag}>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</${tag}>`;
+        return `<${tag}>${block.items.map((item) => `<li>${typeof item === "object" ? item.html || escapeHtml(item.text || "") : escapeHtml(item)}</li>`).join("")}</${tag}>`;
       }
       if (block.type === "todo") {
-        return `<p class="article-todo ${block.checked ? "is-checked" : ""}"><span aria-hidden="true">${block.checked ? "✓" : ""}</span>${escapeHtml(block.text)}</p>`;
+        return `<p class="article-todo ${block.checked ? "is-checked" : ""}"><span aria-hidden="true">${block.checked ? "✓" : ""}</span>${inlineContent}</p>`;
       }
       if (block.type === "divider") {
         return `<hr class="article-divider" />`;
+      }
+      if (block.type === "toggle") {
+        return `
+          <details class="article-toggle">
+            <summary>${inlineContent}</summary>
+            <div>${renderPostContent(block.children || [])}</div>
+          </details>
+        `;
       }
       if (block.type === "image") {
         return `<figure class="article-figure"><img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt || block.caption || "")}" loading="lazy" />${block.caption ? `<figcaption>${escapeHtml(block.caption)}</figcaption>` : ""}</figure>`;
@@ -1912,7 +1925,7 @@ function renderPostContent(blocks = []) {
       if (block.type === "link") {
         return `<p><a class="article-block-link" href="${escapeHtml(block.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(block.text || block.url)}</a></p>`;
       }
-      return `<p>${escapeHtml(block.text)}</p>`;
+      return `<p>${inlineContent}</p>`;
     })
     .join("");
 }
@@ -1920,7 +1933,10 @@ function renderPostContent(blocks = []) {
 function getPostWordCount(post) {
   const text = (post.content || [])
     .map((block) => {
-      if (block.type === "list") return (block.items || []).join("");
+      if (block.type === "list") return (block.items || []).map((item) => typeof item === "object" ? item.text || "" : item).join("");
+      if (block.type === "toggle") {
+        return `${block.text || ""}${(block.children || []).map((child) => child.text || "").join("")}`;
+      }
       return block.text || "";
     })
     .join("");
@@ -2778,7 +2794,10 @@ function renderCalendarFestivalCompletion(dateKey, name) {
 
 function renderCalendarDayDetail(dayData) {
   if (activeCalendarDate !== dayData.date) return "";
-  if (!dayData.records.length) {
+  const scheduleOnly = calendarScheduleOpen;
+  const hasDateNotes = !scheduleOnly && (dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday);
+
+  if (!dayData.records.length && !hasDateNotes) {
     return `
       <div class="calendar-day-detail">
         ${renderCalendarRecordSummary(dayData)}
@@ -2786,11 +2805,8 @@ function renderCalendarDayDetail(dayData) {
     `;
   }
 
-  const scheduleOnly = calendarScheduleOpen;
-  const hasDateNotes = !scheduleOnly && (dayData.festivals.length || dayData.solarTerm || dayData.isDayOff || dayData.isAdjustedWorkday || dayData.schedules.length);
-
   return `
-    <div class="calendar-day-detail">
+    <div class="calendar-day-detail ${hasDateNotes ? "has-date-notes" : "is-record-only"}">
       <p>${formatDate(dayData.date)} · 星期${getCalendarWeekday(new Date(`${dayData.date}T00:00:00`))}</p>
       ${
         hasDateNotes

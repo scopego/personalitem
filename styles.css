@@ -1530,6 +1530,45 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   font-family: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
+.article-body p code,
+.article-body li code,
+.article-body blockquote code,
+.article-toggle summary code {
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface) 90%, var(--ink) 5%);
+  color: var(--ink);
+  font-size: 0.9em;
+  padding: 0.08rem 0.3rem;
+}
+
+.article-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent-border);
+  text-underline-offset: 0.18em;
+}
+
+.article-toggle {
+  border-top: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+  padding: 0.78rem 0;
+}
+
+.article-toggle summary {
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 560;
+  list-style-position: outside;
+}
+
+.article-toggle > div {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.86rem;
+  padding-left: 1rem;
+}
+
 .article-code[data-language]::before {
   content: attr(data-language);
   display: block;
@@ -2851,6 +2890,11 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   padding-top: 1rem;
   border-top: 1px solid var(--color-divider);
   overflow-anchor: none;
+}
+
+.calendar-day-detail.is-record-only {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .calendar-day-detail p {
@@ -5674,6 +5718,57 @@ html[data-theme="dark"] .media-filter-panel {
 
   .content {
     grid-column: 1;
+    min-width: 0;
+  }
+
+  .article-reader,
+  .article-reader-head,
+  .article-body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .article-reader {
+    gap: 1.35rem;
+  }
+
+  .article-reader h1 {
+    font-size: clamp(1.55rem, 9vw, 2.1rem);
+    line-height: 1.24;
+    overflow-wrap: anywhere;
+  }
+
+  .article-body {
+    font-size: 16px;
+    line-height: 1.86;
+    overflow-wrap: break-word;
+  }
+
+  .article-body p,
+  .article-body li,
+  .article-body blockquote {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .article-body pre {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .article-figure img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .article-toggle > div {
+    padding-left: 0.8rem;
   }
 
   .post-card-link {
