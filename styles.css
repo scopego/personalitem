@@ -2892,11 +2892,6 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   overflow-anchor: none;
 }
 
-.calendar-day-detail.is-record-only {
-  border-top: 0;
-  padding-top: 0;
-}
-
 .calendar-day-detail p {
   margin: 0;
   color: var(--muted);

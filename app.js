@@ -1213,6 +1213,13 @@ function setupTrumanReveals(root = document) {
     const currentWidth = Math.round(target.getBoundingClientRect().width);
     if (target.dataset.trumanReady === "true" && target.dataset.trumanWidth === String(currentWidth)) return;
 
+    if (isMobileCalendarLayout()) {
+      target.dataset.trumanReady = "true";
+      target.dataset.trumanWidth = String(currentWidth);
+      target.textContent = text;
+      return;
+    }
+
     target.dataset.trumanReady = "false";
     target.dataset.trumanWidth = String(currentWidth);
     target.textContent = text;
