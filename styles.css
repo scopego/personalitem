@@ -3099,8 +3099,9 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 
 .truman-time-highlight {
   position: relative;
-  display: inline-block;
-  overflow: hidden;
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   color: var(--truman-text, var(--accent));
   text-shadow: 0 0 0.54em color-mix(in srgb, var(--truman-glow, var(--accent)) 22%, transparent);
   vertical-align: baseline;
@@ -3109,7 +3110,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
 .truman-time-highlight::after {
   content: "";
   position: absolute;
-  inset: -0.14em -0.28em;
+  inset: -0.12em -0.24em;
   background: linear-gradient(
     100deg,
     transparent 0%,
@@ -3119,7 +3120,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   filter: blur(3px);
   opacity: 0;
   transform: translate3d(-130%, 0, 0) skewX(-14deg);
-  animation: truman-time-scan 880ms ease-out var(--truman-scan-delay, 0.8s) 1 both;
+  animation: truman-time-scan 1450ms ease-out var(--truman-highlight-delay, 0.8s) 1 both;
   pointer-events: none;
 }
 

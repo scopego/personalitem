@@ -1282,8 +1282,7 @@ function setupTrumanReveals(root = document) {
       lineNode.style.setProperty("--truman-char-count", characterCount);
       lineNode.style.setProperty("--truman-type-delay", `${lineDelay.toFixed(2)}s`);
       lineNode.style.setProperty("--truman-type-duration", `${duration.toFixed(2)}s`);
-      lineNode.style.setProperty("--truman-scan-delay", `${(lineDelay + duration + 0.08).toFixed(2)}s`);
-      lineNode.innerHTML = renderTrumanLineHtml(lineText, lineStart, activePhrase);
+      lineNode.innerHTML = renderTrumanLineHtml(lineText, lineStart, activePhrase, lineDelay, duration, characterCount);
       if (shouldHyphenate) lineNode.insertAdjacentText("beforeend", "-");
       target.appendChild(lineNode);
       lineDelay += duration + 0.12;
@@ -1300,7 +1299,7 @@ function getTrumanActivePhrase() {
   return "good night";
 }
 
-function renderTrumanLineHtml(lineText, lineStart, activePhrase) {
+function renderTrumanLineHtml(lineText, lineStart, activePhrase, lineDelay, duration, characterCount) {
   const phraseStart = trumanGreetingText.indexOf(activePhrase);
   if (phraseStart < 0) return escapeHtml(lineText);
 
@@ -1314,10 +1313,13 @@ function renderTrumanLineHtml(lineText, lineStart, activePhrase) {
   const before = lineText.slice(0, highlightStart - lineStart);
   const highlighted = lineText.slice(highlightStart - lineStart, highlightEnd - lineStart);
   const after = lineText.slice(highlightEnd - lineStart);
+  const highlightOffset = Math.max(0, [...lineText.slice(0, highlightStart - lineStart)].length);
+  const perCharacterDuration = duration / Math.max(characterCount, 1);
+  const highlightDelay = lineDelay + highlightOffset * perCharacterDuration;
 
   return [
     escapeHtml(before),
-    `<span class="truman-time-highlight">${escapeHtml(highlighted)}</span>`,
+    `<span class="truman-time-highlight" style="--truman-highlight-delay: ${highlightDelay.toFixed(2)}s">${escapeHtml(highlighted)}</span>`,
     escapeHtml(after),
   ].join("");
 }
