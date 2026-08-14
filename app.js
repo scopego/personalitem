@@ -1210,11 +1210,17 @@ function setupTrumanReveals(root = document) {
   const targets = root.querySelectorAll(".truman-reveal-text");
   targets.forEach((target) => {
     const text = trumanGreetingText;
+    const activePhrase = getTrumanActivePhrase();
     const currentWidth = Math.round(target.getBoundingClientRect().width);
-    if (target.dataset.trumanReady === "true" && target.dataset.trumanWidth === String(currentWidth)) return;
+    if (
+      target.dataset.trumanReady === "true" &&
+      target.dataset.trumanWidth === String(currentWidth) &&
+      target.dataset.trumanPhrase === activePhrase
+    ) return;
 
     target.dataset.trumanReady = "false";
     target.dataset.trumanWidth = String(currentWidth);
+    target.dataset.trumanPhrase = activePhrase;
     target.textContent = text;
 
     const lines = [];
@@ -1257,27 +1263,63 @@ function setupTrumanReveals(root = document) {
 
     target.textContent = "";
     let lineDelay = 0;
+    let lineCursor = 0;
     resolvedLines.forEach((line, index) => {
       const nextLine = resolvedLines[index + 1];
-      let lineText = line.text.trimEnd();
+      const rawLineText = line.text;
+      let lineText = rawLineText.trimEnd();
+      const lineStart = lineCursor;
+      lineCursor += rawLineText.length;
       const trimmedEnd = line.end - (line.text.length - line.text.trimEnd().length);
       const shouldHyphenate = nextLine &&
         /[A-Za-z]/.test(text[trimmedEnd] || "") &&
         /[A-Za-z]/.test(text[trimmedEnd + 1] || "");
-      if (shouldHyphenate) lineText += "-";
-      const characterCount = Math.max([...lineText].length, 1);
+      const displayLineText = shouldHyphenate ? `${lineText}-` : lineText;
+      const characterCount = Math.max([...displayLineText].length, 1);
       const duration = Math.max(characterCount * 0.06, 0.72);
       const lineNode = document.createElement("span");
       lineNode.className = `truman-reveal-line${index === resolvedLines.length - 1 ? " is-last-line" : ""}`;
       lineNode.style.setProperty("--truman-char-count", characterCount);
       lineNode.style.setProperty("--truman-type-delay", `${lineDelay.toFixed(2)}s`);
       lineNode.style.setProperty("--truman-type-duration", `${duration.toFixed(2)}s`);
-      lineNode.textContent = lineText;
+      lineNode.style.setProperty("--truman-scan-delay", `${(lineDelay + duration + 0.08).toFixed(2)}s`);
+      lineNode.innerHTML = renderTrumanLineHtml(lineText, lineStart, activePhrase);
+      if (shouldHyphenate) lineNode.insertAdjacentText("beforeend", "-");
       target.appendChild(lineNode);
       lineDelay += duration + 0.12;
     });
     target.dataset.trumanReady = "true";
   });
+}
+
+function getTrumanActivePhrase() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour <= 10) return "Good Morning";
+  if (hour >= 11 && hour <= 16) return "good afternoon";
+  if (hour >= 17 && hour <= 18) return "good evening";
+  return "good night";
+}
+
+function renderTrumanLineHtml(lineText, lineStart, activePhrase) {
+  const phraseStart = trumanGreetingText.indexOf(activePhrase);
+  if (phraseStart < 0) return escapeHtml(lineText);
+
+  const phraseEnd = phraseStart + activePhrase.length;
+  const lineEnd = lineStart + lineText.length;
+  const highlightStart = Math.max(lineStart, phraseStart);
+  const highlightEnd = Math.min(lineEnd, phraseEnd);
+
+  if (highlightStart >= highlightEnd) return escapeHtml(lineText);
+
+  const before = lineText.slice(0, highlightStart - lineStart);
+  const highlighted = lineText.slice(highlightStart - lineStart, highlightEnd - lineStart);
+  const after = lineText.slice(highlightEnd - lineStart);
+
+  return [
+    escapeHtml(before),
+    `<span class="truman-time-highlight">${escapeHtml(highlighted)}</span>`,
+    escapeHtml(after),
+  ].join("");
 }
 
 function getTrumanFallbackLines(text, target) {

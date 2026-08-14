@@ -3027,7 +3027,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   max-width: 100%;
   min-width: 0;
   overflow-x: clip;
-  color: var(--truman-text, var(--muted));
+  color: var(--muted);
 }
 
 .truman-reveal-text {
@@ -3081,7 +3081,7 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
   max-inline-size: 0;
   overflow: hidden;
   border-right: 1px solid transparent;
-  color: var(--truman-text, var(--muted));
+  color: var(--muted);
   hyphens: auto;
   -webkit-hyphens: auto;
   white-space: nowrap;
@@ -3095,6 +3095,32 @@ html[data-theme="dark"] .article-reader-tags .category-pill {
     truman-typewriter var(--truman-type-duration, 1.2s) steps(var(--truman-char-count, 20), end) var(--truman-type-delay, 0s) forwards,
     truman-caret-active var(--truman-type-duration, 1.2s) steps(1, end) var(--truman-type-delay, 0s) forwards,
     truman-caret-blink 760ms steps(1, end) calc(var(--truman-type-delay, 0s) + var(--truman-type-duration, 1.2s)) infinite;
+}
+
+.truman-time-highlight {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  color: var(--truman-text, var(--accent));
+  text-shadow: 0 0 0.54em color-mix(in srgb, var(--truman-glow, var(--accent)) 22%, transparent);
+  vertical-align: baseline;
+}
+
+.truman-time-highlight::after {
+  content: "";
+  position: absolute;
+  inset: -0.14em -0.28em;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in srgb, #ffffff 72%, var(--truman-glow, var(--accent))) 48%,
+    transparent 100%
+  );
+  filter: blur(3px);
+  opacity: 0;
+  transform: translate3d(-130%, 0, 0) skewX(-14deg);
+  animation: truman-time-scan 880ms ease-out var(--truman-scan-delay, 0.8s) 1 both;
+  pointer-events: none;
 }
 
 .calendar-record-summary.is-truman.is-morning {
@@ -3186,6 +3212,23 @@ html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
   }
 }
 
+@keyframes truman-time-scan {
+  0% {
+    opacity: 0;
+    transform: translate3d(-130%, 0, 0) skewX(-14deg);
+  }
+
+  18%,
+  72% {
+    opacity: 0.62;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(130%, 0, 0) skewX(-14deg);
+  }
+}
+
 @keyframes truman-light-reveal {
   from {
     --truman-light-x: 8%;
@@ -3202,12 +3245,12 @@ html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
 
 @media (prefers-reduced-motion: reduce) {
   .calendar-record-summary.is-truman {
-    color: var(--truman-text, var(--muted));
+    color: var(--muted);
     animation: none;
   }
 
   .truman-reveal-line {
-    color: var(--truman-text, var(--muted));
+    color: var(--muted);
     background: none;
     animation: none;
     max-inline-size: 100%;
@@ -3223,6 +3266,11 @@ html[data-theme="dark"] .calendar-record-summary.is-truman.is-night {
     animation: none;
     opacity: 0.84;
     transform: none;
+  }
+
+  .truman-time-highlight::after {
+    animation: none;
+    opacity: 0;
   }
 }
 
