@@ -1281,7 +1281,7 @@ function setupTrumanReveals(root = document) {
 }
 
 function getTrumanFallbackLines(text, target) {
-  const width = getTrumanLineWidth(target);
+  const width = Math.max(160, getTrumanLineWidth(target) - 14);
   const computedStyle = window.getComputedStyle(target);
   const canvas = getTrumanFallbackLines.canvas || document.createElement("canvas");
   const context = canvas.getContext("2d");
